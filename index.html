@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dungeon Speller - Spelling Adventure Game</title>
+        <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Philosopher:wght@400;700&family=Rajdhani:wght@500;700&family=Noto+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+    /* ═══════════════════════════════════════════════════════════════════════
+       CSS STYLES & ANIMATIONS
+       ═══════════════════════════════════════════════════════════════════════ */
+    
+    :root {
+        /* Color Palette */
+        --bg-primary: #1a1a2e;
+        --bg-secondary: rgba(22, 33, 62, 0.85);
+        --accent-purple: #8b5cf6;
+        --accent-blue: #3b82f6;
+        --gold: #fbbf24;
+        --gold-glow: rgba(251, 191, 36, 0.5);
+        --success: #10b981;
+        --danger: #ef4444;
+        --text-light: #f8fafc;
+        --text-dim: #94a3b8;
+        
+        /* Fonts */
+        --font-title: 'Cinzel', serif;
+        --font-body: 'Philosopher', serif;
+        --font-ui: 'Rajdhani', sans-serif;
+        --font-arabic: 'Noto Sans Arabic', sans-serif;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none; /* Prevent text selection during drag/click */
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        background-color: var(--bg-primary);
+        color: var(--text-light);
+        font-family: var(--font-body);
+        overflow: hidden; /* Prevent scrolling */
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* --- LAYOUT UTILITIES --- */
+    .screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.8s ease;
+        z-index: 1;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .screen.active {
+        opacity: 1;
+        pointer-events: all;
+        z-index: 10;
+    }
+
+    /* --- BACKGROUND VIDEOS --- */
+    .bg-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1;
+        opacity: 0.6;
+    }
+
+    /* --- TYPOGRAPHY --- */
+    h1 {
+        font-family: var(--font-title);
+        font-size: 3.5rem;
+        color: var(--gold);
+        text-shadow: 0 0 15px var(--gold-glow);
+        margin-bottom: 2rem;
+        text-align: center;
+        letter-spacing: 2px;
+    }
+
+    h2 {
+        font-family: var(--font-title);
+        font-size: 2rem;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+    }
+
+    /* --- BUTTONS --- */
+    .btn {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        border: 2px solid var(--accent-blue);
+        color: white;
+        padding: 12px 30px;
+        font-family: var(--font-ui);
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        margin: 10px;
+        min-width: 150px;
+    }
+
+    .btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 0 20px var(--accent-purple);
+        border-color: var(--gold);
+    }
+
+    .btn:disabled {
+        background: #475569;
+        border-color: #64748b;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .btn-gold {
+        background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+        border-color: #fcd34d;
+        color: #1a1a2e;
+    }
+
+    /* --- MENU SCREEN --- */
+    #menuScreen {
+        background-image: url('door-closed.png'); /* Fallback */
+        background-color: #0f172a; /* Fallback color */
+    }
+
+    .menu-panel {
+        background: var(--bg-secondary);
+        padding: 40px;
+        border-radius: 16px;
+        border: 1px solid var(--accent-blue);
+        box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        text-align: center;
+        backdrop-filter: blur(10px);
+        max-width: 500px;
+        width: 90%;
+    }
+
+    .lang-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .lang-btn {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid var(--text-dim);
+        padding: 10px;
+        border-radius: 6px;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .lang-btn.selected {
+        background: var(--accent-purple);
+        border-color: var(--gold);
+        color: white;
+        box-shadow: 0 0 10px var(--accent-purple);
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 15px;
+        margin: 20px 0;
+        background: rgba(0,0,0,0.3);
+        border: 2px solid var(--accent-blue);
+        border-radius: 8px;
+        color: white;
+        font-family: var(--font-ui);
+        font-size: 1.2rem;
+        text-align: center;
+    }
+
+    input[type="text"]:focus {
+        outline: none;
+        border-color: var(--gold);
+        box-shadow: 0 0 15px var(--gold-glow);
+    }
+
+    /* --- GAME ARENA --- */
+    #gameScreen {
+        background-image: url('dungeon-corridor.png');
+        justify-content: space-between;
+        padding: 20px 0;
+    }
+
+    .hud-top {
+        width: 100%;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        z-index: 5;
+    }
+
+    .player-panel, .ghost-panel {
+        background: var(--bg-secondary);
+        padding: 10px 20px;
+        border-radius: 12px;
+        border: 1px solid var(--accent-blue);
+        min-width: 200px;
+    }
+
+    .stats-row {
+        display: flex;
+        justify-content: space-between;
+        font-family: var(--font-ui);
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+    }
+
+    .hp-container {
+        width: 100%;
+        height: 12px;
+        background: #334155;
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid #475569;
+    }
+
+    .hp-bar {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #10b981, #34d399);
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.6s ease;
+    }
+
+    /* Torch Video Overlay */
+    .torch-overlay {
+        position: absolute;
+        top: 10%;
+        right: 5%;
+        width: 100px;
+        height: 150px;
+        opacity: 0.8;
+        mix-blend-mode: screen;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    /* Ghost Area */
+    .arena-center {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        width: 100%;
+    }
+
+    .ghost-sprite {
+        width: 350px;
+        height: 420px;
+        background-image: url('ghost-main.png'); /* Fallback */
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4));
+        transition: transform 0.5s ease;
+        position: relative;
+        z-index: 3;
+    }
+
+    .hit-effect {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 300px;
+        background-image: url('ghost-hit-effect.png');
+        background-size: cover;
+        display: none;
+        z-index: 4;
+    }
+
+    .dialogue-box {
+    position: absolute;
+    
+    /* --- POSITION CONTROLS --- */
+    top: 60%;           /* Distance from TOP of the ghost area */
+    left: 50%;          /* Center Horizontally */
+    transform: translate(-50%, 0); /* Centering trick */
+    
+    /* --- SIZE --- */
+    width: 50%;         /* Width of the box */
+    min-height: 20px;
+    
+    /* --- VISUALS --- */
+    background: rgba(0, 0, 0, 0.85); /* Dark background */
+    border: 2px solid #fbbf24;       /* Gold Border */
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+    
+    /* --- LAYOUT INSIDE (Keeps text in middle) --- */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+
+/* 2. The Text (Content) - Just styling, no position */
+#ghostText {
+    margin: 0;          /* Remove default margins */
+    padding: 15px;      /* Space inside the box */
+    
+    /* --- FONT CONTROLS --- */
+    color: #fbbf24;     /* Gold Text */
+    font-family: 'Philosopher', serif;
+    font-size: 1.4rem;  /* Text Size */
+    line-height: 1.4;
+    text-align: center;
+}
+
+    /* Interaction Area */
+    .interaction-area {
+        background: linear-gradient(to top, #0f172a 90%, transparent);
+        width: 100%;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        z-index: 10;
+    }
+
+    .sentence-preview {
+                /* --- 1. POSITION CONTROLS --- */
+    position: absolute;   /* Detach from the box so we can move it anywhere */
+    top: 70%;             /* Distance from TOP of screen (Change this to move Up/Down) */
+    left: 50%;            /* Center Horizontally */
+    transform: translate(-50%, -50%); /* Perfect centering alignment */
+    z-index: 50;          /* Ensure it sits on top of the Ghost */
+    
+    /* --- 2. SIZE & FONT CONTROLS --- */
+    font-size: 1.0rem;    /* Text Size (e.g., 2rem, 30px, 40px) */
+    font-family: var(--font-title); /* Use the fancy font */
+    font-weight: bold;
+    text-align: center;
+    width: 90%;           /* Prevent text from running off screen */
+    
+    /* --- 3. COLORS --- */
+    color: #fbbf24;       /* Gold text */
+    text-shadow: 
+        0 2px 0 #000, 
+        0 0 20px rgba(0,0,0,0.8); /* Strong shadow to read over images */
+
+    /* Keep animation logic working */
+    pointer-events: none; /* Let clicks pass through it */
+    transition: opacity 0.5s;
+    }
+
+    .drop-zone, .word-pool {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 800px;
+        min-height: 60px;
+        padding: 10px;
+    }
+
+    .drop-zone {
+        background: rgba(255,255,255,0.05);
+        border-radius: 8px;
+        border-bottom: 2px solid var(--text-dim);
+    }
+
+    .word-tile {
+        background: var(--bg-secondary);
+        border: 1px solid var(--accent-purple);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: var(--font-ui);
+        font-size: 1.1rem;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    .word-tile:hover {
+        background: var(--accent-purple);
+        transform: scale(1.05);
+    }
+
+    /* --- VICTORY / DEFEAT --- */
+    #victoryScreen { background-image: url('victory-bg.png'); }
+    #defeatScreen { background-image: url('defeat-bg.png'); }
+
+    .end-panel {
+        background: rgba(0,0,0,0.85);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        border: 2px solid var(--gold);
+        box-shadow: 0 0 50px var(--gold-glow);
+        max-width: 600px;
+        width: 90%;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin: 30px 0;
+        background: rgba(255,255,255,0.05);
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .stat-item h3 { font-size: 0.9rem; color: var(--text-dim); margin-bottom: 5px; }
+    .stat-item p { font-size: 1.5rem; font-weight: bold; color: var(--gold); }
+
+    /* --- RTL SUPPORT --- */
+    body.rtl { direction: rtl; font-family: var(--font-arabic); }
+    body.rtl h1 { letter-spacing: 0; }
+    body.rtl .hud-top { flex-direction: row-reverse; }
+
+    /* --- ANIMATIONS --- */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+
+    @keyframes damage-flash {
+        0% { background-color: var(--danger); }
+        100% { background-color: var(--bg-primary); }
+    }
+
+    .shake-anim { animation: shake 0.4s ease-in-out; }
+    .damage-anim { animation: damage-flash 0.2s; }
+    .ghost-idle { animation: float 3s ease-in-out infinite; }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+        h1 { font-size: 2.5rem; }
+        .hud-top { flex-direction: column; gap: 10px; align-items: stretch; }
+        .ghost-sprite { width: 180px; height: 220px; }
+        .dialogue-box { font-size: 0.9rem; bottom: 5px; }
+        .word-tile { padding: 6px 12px; font-size: 0.9rem; }
+        .stats-grid { grid-template-columns: 1fr; gap: 10px; }
+    }
+    
+    /* Loader */
+    .loader {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid var(--accent-purple);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (max-width: 768px) {
+    
+    .dialogue-box {
+        /* 1. Positioning: Move it up near the HUD */
+        top: 15% !important; 
+        bottom: auto !important; /* Stop using bottom positioning */
+        
+        /* 2. Sizing: Force it to be small */
+        width: 90% !important;        /* Not full width */
+        min-height: 0 !important;     /* CRITICAL: Remove fixed height */
+        height: auto !important;      /* grow with text only */
+        
+        /* 3. Spacing: Make it tight */
+        padding: 8px 12px !important; /* Very small padding */
+        
+        /* 4. Visuals: Make it transparent & light */
+        background: rgba(0, 0, 0, 0.5) !important; /* See-through */
+        border: 1px solid var(--gold) !important;  /* Thinner border */
+        box-shadow: none !important;               /* Remove glow to save space */
+        border-radius: 15px !important;
+    }
+
+    /* 5. Text: Make it readable but compact */
+    #ghostText {
+        font-size: 0.9rem !important; /* Smaller font */
+        line-height: 1.2 !important;  /* Tighter lines */
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Adjust Ghost Position so it sits BELOW the new box location */
+            .ghost-sprite {
+        /* CHANGE THESE NUMBERS */
+        width: 300px;   /* Was 140px */
+        height: 300px;  /* Was 140px */
+        
+        margin-top: 60px; /* Keep this to avoid hitting dialogue box */
+    }
+}
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: MENU -->
+<div id="menuScreen" class="screen active">
+    <!-- Optional Video Background -->
+    <!-- <video class="bg-video" src="door-opening.mp4" autoplay muted loop></video> -->
+    
+    <div class="menu-panel">
+        <h1 id="menuTitle">Dungeon Speller</h1>
+        
+        <div class="lang-grid">
+            <div class="lang-btn selected" data-lang="en">🌍 English</div>
+            <div class="lang-btn" data-lang="ar">🌍 العربية</div>
+            <div class="lang-btn" data-lang="fr">🌍 Français</div>
+            <div class="lang-btn" data-lang="de">🌍 Deutsch</div>
+        </div>
+
+        <label for="playerName" id="nameLabel" style="color:var(--text-dim);">Enter Your Name:</label>
+        <input type="text" id="playerName" maxlength="20" placeholder="Hero Name..." autocomplete="off">
+        
+        <button id="enterBtn" class="btn btn-gold" disabled>ENTER DUNGEON</button>
+    </div>
+</div>
+
+<!-- SCREEN 2: GAME ARENA -->
+<div id="gameScreen" class="screen">
+    <video class="bg-video" src="dungeon-ambient.mp4" autoplay muted loop playsinline></video>
+    <!-- Torch Video Loop -->
+    <video class="torch-overlay" src="torch-fire.mp4" autoplay muted loop playsinline></video>
+
+    <div class="hud-top">
+        <div class="player-panel">
+            <div class="stats-row">
+                <span id="uiPlayerName">Hero</span>
+                <span id="uiXP">⭐ 0</span>
+            </div>
+            <div class="hp-container">
+                <div id="playerHPBar" class="hp-bar"></div>
+            </div>
+            <div class="stats-row" style="margin-top:5px; font-size:0.9rem; color:var(--text-dim);">
+                <span id="uiStreak">Streak: 🔥 0</span>
+            </div>
+        </div>
+
+        <div class="ghost-panel" style="text-align:right;">
+            <div class="stats-row" style="justify-content: flex-end;">
+                <span>Specter</span>
+            </div>
+            <div class="hp-container">
+                <div id="ghostHPBar" class="hp-bar" style="background: linear-gradient(90deg, #ef4444, #b91c1c);"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="arena-center">
+        <div id="ghostChar" class="ghost-sprite ghost-idle"></div>
+        <div id="hitEffect" class="hit-effect"></div>
+        <div class="dialogue-box">
+            <p id="ghostText">...</p>
+        </div>
+    </div>
+
+    <div class="interaction-area">
+        <div id="sentencePreview" class="sentence-preview"></div>
+        
+        <!-- Drop Zone (Answer) -->
+        <div id="dropZone" class="drop-zone"></div>
+        
+        <!-- Word Pool (Scrambled) -->
+        <div id="wordPool" class="word-pool"></div>
+        
+        <button id="submitBtn" class="btn">CAST SPELL</button>
+    </div>
+</div>
+
+<!-- SCREEN 3: VICTORY -->
+<div id="victoryScreen" class="screen">
+    <div class="end-panel">
+        <h1 id="vicTitle">VICTORY!</h1>
+        <p id="vicMessage" style="font-size:1.2rem; margin-bottom:20px;">The dungeon is cleansed!</p>
+        
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h3 id="vicQLabel">Questions</h3>
+                <p id="vicQValue">10/10</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="vicXPLabel">XP Earned</h3>
+                <p id="vicXPValue">150</p>
+            </div>
+            <div class="stat-item">
+                <h3 id="vicStrLabel">Best Streak</h3>
+                <p id="vicStrValue">10</p>
+            </div>
+        </div>
+
+        <p id="itemLabel" style="color:var(--gold); margin-bottom:20px;">Item Acquired: <span style="color:white;">Enchanted Sword ⚔️</span></p>
+            <button class="btn" style="background:#25D366; border-color:#128C7E;" onclick="gameController.shareToWhatsApp(event)">
+    📱 Save & Share
+</button>
+        <button class="btn btn-gold" onclick="gameController.restartGame()">Play Again</button>
+        <button class="btn" onclick="uiController.showScreen('menuScreen')">Main Menu</button>
+    </div>
+</div>
+
+<!-- SCREEN 4: DEFEAT -->
+<div id="defeatScreen" class="screen">
+    <div class="end-panel" style="border-color: var(--danger);">
+        <h1 id="defTitle" style="color: var(--danger);">DEFEATED</h1>
+        <p id="defMessage">The specter was too strong...</p>
+        
+        <div class="stats-grid">
+            <div class="stat-item"><h3>Questions</h3><p id="defQValue">5/10</p></div>
+            <div class="stat-item"><h3>XP Earned</h3><p id="defXPValue">50</p></div>
+            <div class="stat-item"><h3>Best Streak</h3><p id="defStrValue">3</p></div>
+        </div>
+        
+        <button class="btn btn-gold" onclick="gameController.restartGame()">Try Again</button>
+        <button class="btn" onclick="uiController.showScreen('menuScreen')">Main Menu</button>
+    </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadingScreen" class="screen active" style="background:#000; z-index:100;">
+    <div class="loader"></div>
+    <p style="color:var(--text-dim); margin-top:10px;">Summoning assets...</p>
+</div>
+    <div id="certificateNode" style="position:fixed; left:-9999px; top:0; width:600px; height:400px; background:#1a1a2e; border:4px solid #fbbf24; padding:20px; text-align:center; font-family:'Cinzel', serif; color:white; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999;">
+    <!-- Background Layer - Removed image to prevent CORS issues -->
+    <div style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0.3; background:linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); background-size:cover;"></div>
+    
+    <!-- Content Layer -->
+    <div style="z-index:2; position:relative;">
+        <h1 style="color:#fbbf24; font-size:40px; margin-bottom:10px; text-shadow:0 2px 4px black;">DUNGEON CONQUERED</h1>
+        <p style="font-family:'Philosopher', serif; font-size:24px; margin:10px 0;">This certifies that</p>
+        <h2 id="certName" style="font-size:48px; color:#10b981; margin:5px 0; text-shadow:0 0 10px #10b981;">HERO NAME</h2>
+        <p style="font-family:'Philosopher', serif; font-size:20px;">Has cleansed the dungeon of the Spelling Specter.</p>
+        
+        <div style="display:flex; justify-content:center; gap:30px; margin-top:20px; font-family:'Rajdhani', sans-serif; font-size:24px;">
+            <div>⭐ XP: <span id="certXP">0</span></div>
+            <div>🔥 Streak: <span id="certStreak">0</span></div>
+        </div>
+        <div style="margin-top:20px; font-size:14px; color:#94a3b8;">Dungeon Speller Challenge</div>
+    </div>
+</div>
+<script>
+    /* ═══════════════════════════════════════════════════════════════════════
+       PART 2: DATA & CONFIGURATION
+       ═══════════════════════════════════════════════════════════════════════ */
+
+const SUPABASE_URL = "https://syrhuxxryctrzjdzexnx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
+
+// Initialize Client
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const CONFIG = {
+        PLAYER_MAX_HP: 100,
+        GHOST_MAX_HP: 100,
+        DAMAGE_PLAYER: 30,
+        DAMAGE_GHOST: 10,
+        XP_PER_WIN: 5,
+        ASSETS: {
+            audio: [
+                'dungeon-ambient.mp3', 'ghost-appear.mp3', 'correct-answer.mp3',
+                'wrong-answer.mp3', 'player-hit.mp3', 'ghost-hit.mp3',
+                'victory.mp3', 'defeat.mp3', 'button-click.mp3', 'whoosh.mp3'
+            ],
+            // Images are loaded via CSS background-images usually, but we can verify them here
+            images: ['door-closed.png', 'dungeon-corridor.png', 'ghost-main.png']
+        }
+    };
+
+    const TRANSLATIONS = {
+        en: {
+            title: "Dungeon Speller",
+            enterName: "Enter Your Name:",
+            enterButton: "Enter Dungeon",
+            submitAnswer: "CAST SPELL",
+            victoryTitle: "VICTORY!",
+            defeatTitle: "DEFEATED",
+            labels: { q: "Questions", xp: "XP Earned", str: "Best Streak", item: "Item Found:" },
+            msg: { 
+                win: "You have bested the Spelling Specter!", 
+                loss: "The Specter's words proved too powerful..." 
+            },
+            ghost: [
+                "You dare enter my domain?",
+                "Arrange my words or face doom!",
+                "Foolish mortal, can you handle this?",
+                "Your streak means nothing to me!"
+            ]
+        },
+        ar: {
+            title: "تهجئة الزنزانة",
+            enterName: "أدخل اسمك:",
+            enterButton: "ادخل الزنزانة",
+            submitAnswer: "إلقاء التعويذة",
+            victoryTitle: "نصر!",
+            defeatTitle: "هزيمة",
+            labels: { q: "الأسئلة", xp: "الخبرة", str: "أفضل تتابع", item: "عنصر:" },
+            msg: { 
+                win: "لقد هزمت شبح التهجئة!", 
+                loss: "كانت كلمات الشبح قوية جداً..." 
+            },
+            ghost: [
+                "هل تجرؤ على دخول مملكتي؟",
+                "رتب كلماتي أو واجه الهلاك!",
+                "أيها الفاني الأحمق، هل تستطيع تحمل هذا؟",
+                "سلسلتك لا تعني لي شيئاً!"
+            ]
+        },
+        fr: {
+            title: "Le Donjon des Mots",
+            enterName: "Entrez votre nom:",
+            enterButton: "Entrer dans le donjon",
+            submitAnswer: "Lancer le sort",
+            victoryTitle: "VICTOIRE !",
+            defeatTitle: "DÉFAITE",
+            labels: { q: "Questions", xp: "XP Gagné", str: "Meilleure Série", item: "Objet:" },
+            msg: { win: "Vous avez vaincu le Spectre !", loss: "Les mots du Spectre étaient trop puissants..." },
+            ghost: ["Oses-tu entrer dans mon domaine ?", "Arrange mes mots ou fais face au destin !"]
+        },
+        de: {
+            title: "Wort-Kerker",
+            enterName: "Gib deinen Namen ein:",
+            enterButton: "Betrete den Kerker",
+            submitAnswer: "Zauber wirken",
+            victoryTitle: "SIEG!",
+            defeatTitle: "NIEDERLAGE",
+            labels: { q: "Fragen", xp: "EP Verdient", str: "Beste Serie", item: "Gegenstand:" },
+            msg: { win: "Du hast das Gespenst besiegt!", loss: "Die Worte des Gespensts waren zu mächtig..." },
+            ghost: ["Wagst du es, mein Reich zu betreten?", "Ordne meine Worte oder stirb!"]
+        }
+    };
+
+    const QUESTIONS_DB = {
+        en: [
+            "Everyone admired the huge proud ship",
+            "It sailed across the deep blue ocean",
+            "I was just a little digger",
+            "The digger stayed on the sandy shore",
+            "I was always ready to help others",
+            "The ship came close to load cargo",
+            "Suddenly something went wrong near the shore",
+            "The ship got stuck in heavy mud",
+            "The thick mud held the ship fast",
+            "The ship tried hard to move away",
+            "Big machines rushed to help the ship",
+            "None of them could pull it out",
+            "Everyone started to give up hope",
+            "I said that I could help them",
+            "The big machines laughed at me",
+            "I started digging carefully around the ship",
+            "I worked hard to clear the mud",
+            "Finally the path was clear again",
+            "The huge ship floated free at last",
+            "Size does not matter for inner strength"
+        ],
+        ar: [
+            "أعجب الجميع بالسفينة الضخمة الفخورة",
+            "أبحرت عبر المحيط الأزرق العميق",
+            "كنت مجرد حفار صغير",
+            "بقي الحفار على الشاطئ الرملي",
+            "كنت دائماً مستعداً لمساعدة الآخرين",
+            "اقتربت السفينة لتحميل البضائع",
+            "فجأة حدث خطأ ما قرب الشاطئ",
+            "علقت السفينة في الوحل الثقيل",
+            "أمسك الطين السميك بالسفينة بقوة",
+            "حاولت السفينة جاهدة أن تتحرك",
+            "اندفعت الآلات الكبيرة لمساعدة السفينة",
+            "لم يستطع أي منهم سحبها للخارج",
+            "بدأ الجميع يفقدون الأمل",
+            "قلت أنني أستطيع مساعدتهم",
+            "ضحكت الآلات الكبيرة علي",
+            "بدأت الحفر بعناية حول السفينة",
+            "عملت بجد لإزالة الطين",
+            "أخيراً أصبح الطريق واضحاً مرة أخرى",
+            "طفت السفينة الضخمة حرة أخيراً",
+            "الحجم لا يهم للقوة الداخلية"
+        ],
+        fr: [
+            "Tout le monde admirait l'immense navire fier",
+            "Il naviguait à travers l'océan bleu profond",
+            "J'étais juste une petite pelleteuse",
+            "La pelleteuse restait sur le rivage sablonneux",
+            "J'étais toujours prêt à aider les autres",
+            "Le navire s'est approché pour charger la cargaison",
+            "Soudain quelque chose a mal tourné près du rivage",
+            "Le navire s'est coincé dans la boue lourde",
+            "La boue épaisse retenait le navire fermement",
+            "Le navire a essayé fort de bouger",
+            "De grosses machines se sont précipitées pour aider",
+            "Aucune d'elles ne pouvait le sortir",
+            "Tout le monde a commencé à perdre espoir",
+            "J'ai dit que je pouvais les aider",
+            "Les grosses machines se moquaient de moi",
+            "J'ai commencé à creuser soigneusement autour du navire",
+            "J'ai travaillé dur pour dégager la boue",
+            "Finalement le chemin était clair à nouveau",
+            "L'immense navire a flotté libre enfin",
+            "La taille ne compte pas pour la force intérieure"
+        ],
+        de: [
+            "Jeder bewunderte das riesige stolze Schiff",
+            "Es segelte über den tiefblauen Ozean",
+            "Ich war nur ein kleiner Bagger",
+            "Der Bagger blieb am sandigen Ufer",
+            "Ich war immer bereit anderen zu helfen",
+            "Das Schiff kam nah um Fracht zu laden",
+            "Plötzlich ging etwas schief nahe dem Ufer",
+            "Das Schiff blieb im schweren Schlamm stecken",
+            "Der dicke Schlamm hielt das Schiff fest",
+            "Das Schiff versuchte hart sich zu bewegen",
+            "Große Maschinen eilten um dem Schiff zu helfen",
+            "Keine von ihnen konnte es herausziehen",
+            "Alle fingen an die Hoffnung aufzugeben",
+            "Ich sagte dass ich ihnen helfen könnte",
+            "Die großen Maschinen lachten über mich",
+            "Ich fing an vorsichtig um das Schiff zu graben",
+            "Ich arbeitete hart um den Schlamm zu entfernen",
+            "Endlich war der Weg wieder frei",
+            "Das riesige Schiff schwamm endlich frei",
+            "Größe ist nicht wichtig für innere Stärke"
+        ]
+    };
+    /* ═══════════════════════════════════════════════════════════════════════
+       PART 3: GAME LOGIC
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    // --- 1. STATE MANAGEMENT ---
+    const gameState = {
+        lang: 'en',
+        name: '',
+        playerHP: CONFIG.PLAYER_MAX_HP,
+        ghostHP: CONFIG.GHOST_MAX_HP,
+        xp: 0,
+        streak: 0,
+        highStreak: 0,
+        questionsAnswered: 0,
+        currentQ: null,
+        isGameActive: false
+    };
+
+    // --- 2. AUDIO MANAGER ---
+    class AudioManager {
+        constructor() {
+            this.sounds = {};
+            this.bgm = null;
+            this.isMuted = false;
+            this.init();
+        }
+
+        init() {
+            // Preload sounds
+            CONFIG.ASSETS.audio.forEach(file => {
+                const audio = new Audio(file);
+                audio.preload = 'auto';
+                this.sounds[file] = audio;
+            });
+        }
+
+        play(filename, loop = false, volume = 1.0) {
+            if (this.isMuted) return;
+            
+            const sound = this.sounds[filename];
+            if (sound) {
+                sound.currentTime = 0;
+                sound.loop = loop;
+                sound.volume = volume;
+                // Try-catch to handle autoplay restrictions
+                sound.play().catch(e => console.warn("Audio play blocked:", e));
+                
+                if (filename.includes('ambient')) this.bgm = sound;
+            } else {
+                console.warn(`Sound missing: ${filename}`);
+            }
+        }
+
+        stopBGM() {
+            if (this.bgm) {
+                this.bgm.pause();
+                this.bgm.currentTime = 0;
+            }
+        }
+    }
+
+    const audio = new AudioManager();
+
+    // --- 3. UI CONTROLLER ---
+    class UIController {
+        constructor() {
+            this.screens = document.querySelectorAll('.screen');
+            this.hpBarPlayer = document.getElementById('playerHPBar');
+            this.hpBarGhost = document.getElementById('ghostHPBar');
+            this.dialogue = document.getElementById('ghostText');
+            this.submitBtn = document.getElementById('submitBtn');
+            this.dropZone = document.getElementById('dropZone');
+            this.wordPool = document.getElementById('wordPool');
+            this.hitEffect = document.getElementById('hitEffect');
+        }
+
+        showScreen(id) {
+            this.screens.forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        updateHUD() {
+            // HP Bars
+            this.hpBarPlayer.style.width = `${gameState.playerHP}%`;
+            this.hpBarGhost.style.width = `${gameState.ghostHP}%`;
+            
+            // Color shift based on HP
+            if(gameState.playerHP < 30) this.hpBarPlayer.style.backgroundColor = '#ef4444';
+            else this.hpBarPlayer.style.backgroundColor = '#10b981';
+
+            // Text Stats
+            document.getElementById('uiPlayerName').textContent = gameState.name;
+            document.getElementById('uiXP').textContent = `⭐ ${gameState.xp}`;
+            document.getElementById('uiStreak').textContent = `Streak: 🔥 ${gameState.streak}`;
+        }
+
+        shakeScreen() {
+            document.body.classList.add('shake-anim');
+            setTimeout(() => document.body.classList.remove('shake-anim'), 400);
+        }
+
+        flashDamage() {
+            document.body.classList.add('damage-anim');
+            setTimeout(() => document.body.classList.remove('damage-anim'), 200);
+        }
+
+        showHitEffect() {
+            this.hitEffect.style.display = 'block';
+            setTimeout(() => this.hitEffect.style.display = 'none', 300);
+        }
+
+        typewriter(text, element) {
+            element.textContent = '';
+            let i = 0;
+            const speed = 30; // ms per char
+            
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        updateTranslations(lang) {
+            const t = TRANSLATIONS[lang];
+            document.getElementById('menuTitle').textContent = t.title;
+            document.getElementById('nameLabel').textContent = t.enterName;
+            document.getElementById('enterBtn').textContent = t.enterButton;
+            document.getElementById('submitBtn').textContent = t.submitAnswer;
+            
+            // Victory/Defeat text
+            document.getElementById('vicTitle').textContent = t.victoryTitle;
+            document.getElementById('defTitle').textContent = t.defeatTitle;
+            document.getElementById('vicQLabel').textContent = t.labels.q;
+            document.getElementById('vicXPLabel').textContent = t.labels.xp;
+            document.getElementById('vicStrLabel').textContent = t.labels.str;
+            
+            // RTL handling
+            if (lang === 'ar') document.body.classList.add('rtl');
+            else document.body.classList.remove('rtl');
+        }
+    }
+
+    const uiController = new UIController();
+
+    // --- 4. GAME CONTROLLER ---
+    class GameController {
+        constructor() {
+            this.initListeners();
+        }
+
+        initListeners() {
+            // Language Selection
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    gameState.lang = e.target.dataset.lang;
+                    uiController.updateTranslations(gameState.lang);
+                    audio.play('button-click.mp3');
+                });
+            });
+
+            // Name Input
+            const nameInput = document.getElementById('playerName');
+            const enterBtn = document.getElementById('enterBtn');
+            
+            nameInput.addEventListener('input', (e) => {
+                gameState.name = e.target.value.trim();
+                enterBtn.disabled = gameState.name.length < 2;
+            });
+
+            // Enter Game
+            enterBtn.addEventListener('click', () => this.startGame());
+
+            // Submit Answer
+            document.getElementById('submitBtn').addEventListener('click', () => this.checkAnswer());
+            
+            // Remove loading screen after minimal timeout
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.remove('active');
+            }, 1500);
+        }
+
+        startGame() {
+            // Reset Stats
+            gameState.playerHP = CONFIG.PLAYER_MAX_HP;
+            gameState.ghostHP = CONFIG.GHOST_MAX_HP;
+            gameState.xp = 0;
+            gameState.streak = 0;
+            gameState.highStreak = 0;
+            gameState.questionsAnswered = 0;
+            gameState.isGameActive = true;
+
+            // --- KEY CHANGE: Load the full 20 questions into the pool ---
+            this.questionPool = [...QUESTIONS_DB[gameState.lang]];
+
+            audio.play('button-click.mp3');
+            audio.play('whoosh.mp3');
+            audio.play('dungeon-ambient.mp3', true, 0.5); 
+
+            uiController.updateHUD();
+            uiController.showScreen('gameScreen');
+            
+            this.loadNextQuestion();
+        }
+
+        loadNextQuestion() {
+            if (!gameState.isGameActive) return;
+
+            // 1. Safety Check: If the player played SO poorly they used all 20 questions
+            // but the ghost is still alive (rare), we refill the pool.
+            if (this.questionPool.length === 0) {
+                this.questionPool = [...QUESTIONS_DB[gameState.lang]];
+            }
+
+            // 2. Pick a random question from the pool
+            const randomIndex = Math.floor(Math.random() * this.questionPool.length);
+            const rawSentence = this.questionPool[randomIndex];
+
+            // 3. REMOVE it from the pool immediately so it cannot repeat
+            this.questionPool.splice(randomIndex, 1);
+
+            gameState.currentQ = {
+                original: rawSentence,
+                words: rawSentence.split(' ')
+            };
+
+            // (Rest of the visual logic remains the same)
+            const ghosts = TRANSLATIONS[gameState.lang].ghost;
+            const randomLine = ghosts[Math.floor(Math.random() * ghosts.length)];
+            uiController.typewriter(randomLine, document.getElementById('ghostText'));
+            audio.play('ghost-appear.mp3');
+
+            const preview = document.getElementById('sentencePreview');
+            preview.textContent = rawSentence;
+            preview.style.opacity = '1';
+
+            uiController.dropZone.innerHTML = '';
+            uiController.wordPool.innerHTML = '';
+            document.getElementById('submitBtn').disabled = true;
+
+            setTimeout(() => {
+                preview.style.opacity = '0';
+                audio.play('whoosh.mp3');
+                this.renderTiles(gameState.currentQ.words);
+            }, 3000);
+        }
+
+        renderTiles(words) {
+            // Shuffle copy of words
+            const shuffled = [...words].sort(() => Math.random() - 0.5);
+            
+            shuffled.forEach(word => {
+                const tile = document.createElement('div');
+                tile.className = 'word-tile';
+                tile.textContent = word;
+                
+                // Click to move logic
+                tile.addEventListener('click', () => {
+                    audio.play('button-click.mp3');
+                    if (tile.parentElement.id === 'wordPool') {
+                        uiController.dropZone.appendChild(tile);
+                    } else {
+                        uiController.wordPool.appendChild(tile);
+                    }
+                    // Enable submit if drop zone has words
+                    document.getElementById('submitBtn').disabled = uiController.dropZone.children.length === 0;
+                });
+
+                uiController.wordPool.appendChild(tile);
+            });
+        }
+
+        checkAnswer() {
+            const userWords = Array.from(uiController.dropZone.children).map(tile => tile.textContent);
+            const userSentence = userWords.join(' ');
+            
+            // Compare (simple normalization)
+            const isCorrect = userSentence.trim() === gameState.currentQ.original.trim();
+
+            if (isCorrect) {
+                this.handleCorrect();
+            } else {
+                this.handleWrong();
+            }
+
+            // Check Win/Loss conditions
+            if (gameState.ghostHP <= 0) {
+                this.endGame(true);
+            } else if (gameState.playerHP <= 0) {
+                this.endGame(false);
+            } else {
+                // Next question delay
+                setTimeout(() => this.loadNextQuestion(), 2000);
+            }
+        }
+
+        handleCorrect() {
+            audio.play('correct-answer.mp3');
+            audio.play('ghost-hit.mp3');
+            
+            uiController.showHitEffect();
+            document.getElementById('ghostChar').classList.add('shake-anim'); // Ghost hit anim
+            setTimeout(() => document.getElementById('ghostChar').classList.remove('shake-anim'), 400);
+
+            gameState.ghostHP = Math.max(0, gameState.ghostHP - CONFIG.DAMAGE_GHOST);
+            gameState.xp += CONFIG.XP_PER_WIN;
+            gameState.streak++;
+            gameState.questionsAnswered++;
+            if (gameState.streak > gameState.highStreak) gameState.highStreak = gameState.streak;
+
+            uiController.updateHUD();
+        }
+
+        handleWrong() {
+            audio.play('wrong-answer.mp3');
+            audio.play('player-hit.mp3');
+            
+            uiController.shakeScreen();
+            uiController.flashDamage();
+
+            gameState.playerHP = Math.max(0, gameState.playerHP - CONFIG.DAMAGE_PLAYER);
+            gameState.streak = 0;
+            uiController.updateHUD();
+        }
+
+        endGame(isVictory) {
+            gameState.isGameActive = false;
+            audio.stopBGM();
+            
+            // Update End Screen Stats
+            const prefix = isVictory ? 'vic' : 'def';
+            const t = TRANSLATIONS[gameState.lang];
+            
+            document.getElementById(`${prefix}QValue`).textContent = `${gameState.questionsAnswered}`;
+            document.getElementById(`${prefix}XPValue`).textContent = gameState.xp;
+            document.getElementById(`${prefix}StrValue`).textContent = gameState.highStreak;
+
+            if (isVictory) {
+                audio.play('victory.mp3');
+                uiController.showScreen('victoryScreen');
+            } else {
+                audio.play('defeat.mp3');
+                uiController.showScreen('defeatScreen');
+            }
+        }
+
+        async shareToWhatsApp(event) {
+            const btn = event.target; 
+            const originalText = btn.textContent;
+            btn.textContent = "⏳ Uploading...";
+            btn.disabled = true;
+
+            // 1. Fill Certificate Data
+            document.getElementById('certName').textContent = gameState.name;
+            document.getElementById('certXP').textContent = gameState.xp;
+            document.getElementById('certStreak').textContent = gameState.highStreak;
+
+            try {
+                // 2. Generate Image with CORS-safe configuration
+                const canvas = await html2canvas(document.getElementById('certificateNode'), {
+                    useCORS: true,
+                    allowTaint: false,
+                    backgroundColor: null,
+                    scale: 2, // Higher quality
+                    logging: false
+                });
+                
+                canvas.toBlob(async (blob) => {
+                    if (!blob) throw new Error("Image generation failed");
+
+                    // 3. Define Filename
+                    const timestamp = Date.now();
+                    const filename = `cert_${gameState.name.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.png`;
+
+                    // 4. Upload to Supabase
+                    const { data: uploadData, error: uploadError } = await supabase
+                        .storage
+                        .from('certificates')
+                        .upload(filename, blob);
+
+                    if (uploadError) throw uploadError;
+
+                    // 5. Get Public URL
+                    const { data: publicUrlData } = supabase
+                        .storage
+                        .from('certificates')
+                        .getPublicUrl(filename);
+                    
+                    const imageUrl = publicUrlData.publicUrl;
+
+                    // 6. Save to Database
+                    const { error: dbError } = await supabase
+                        .from('leaderboard')
+                        .insert([{ 
+                            player_name: gameState.name, 
+                            xp: gameState.xp, 
+                            streak: gameState.highStreak,
+                            image_url: imageUrl
+                        }]);
+
+                    if (dbError) console.warn("DB Save failed:", dbError);
+
+                    // 7. Send WhatsApp
+                    const myNumber = "01001395058"; 
+                    const text = `I conquered the Dungeon! 🏰\nName: ${gameState.name}\nXP: ${gameState.xp}\nBest Streak: ${gameState.highStreak}\nCheck my certificate: ${imageUrl}`;
+                    const waUrl = `https://wa.me/${myNumber}?text=${encodeURIComponent(text)}`;
+
+                    window.open(waUrl, '_blank');
+
+                    btn.textContent = "✅ Sent!";
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }, 3000);
+
+                }, 'image/png', 0.95); // 0.95 quality
+
+            } catch (err) {
+                console.error("Upload failed:", err);
+                alert("Error uploading. Check console.");
+                btn.textContent = "❌ Error";
+                btn.disabled = false;
+            }
+        }
+
+        restartGame() {
+            this.startGame();
+        }
+    }
+    // --- 5. STARTUP ---
+    const gameController = new GameController();
+</script>
+</body>
+</html>
