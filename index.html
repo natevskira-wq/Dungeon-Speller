@@ -1014,9 +1014,9 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
     // --- 4. GAME CONTROLLER ---
     class GameController {
         constructor() {
-    this.isQuestionActive = false; // ADD THIS LINE
-    this.initListeners();
-}
+            this.isQuestionActive = false; // ADDED: Question locking flag
+            this.initListeners();
+        }
 
         initListeners() {
             // Language Selection
@@ -1060,6 +1060,7 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             gameState.highStreak = 0;
             gameState.questionsAnswered = 0;
             gameState.isGameActive = true;
+            this.isQuestionActive = false; // RESET question lock
 
             // --- KEY CHANGE: Load the full 20 questions into the pool ---
             this.questionPool = [...QUESTIONS_DB[gameState.lang]];
@@ -1075,10 +1076,10 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
         }
 
         loadNextQuestion() {
-    if (!gameState.isGameActive) return;
+            if (!gameState.isGameActive) return;
 
-    this.isQuestionActive = true;
-
+            this.isQuestionActive = true; // SET question as active
+            
             // 1. Safety Check: If the player played SO poorly they used all 20 questions
             // but the ghost is still alive (rare), we refill the pool.
             if (this.questionPool.length === 0) {
@@ -1112,12 +1113,11 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             document.getElementById('submitBtn').disabled = true;
 
             setTimeout(() => {
-        preview.style.opacity = '0';
-        audio.play('whoosh.mp3');
-        this.renderTiles(gameState.currentQ.words);
-    }, 3000);
-}
-
+                preview.style.opacity = '0';
+                audio.play('whoosh.mp3');
+                this.renderTiles(gameState.currentQ.words);
+            }, 3000);
+        }
 
         renderTiles(words) {
             // Shuffle copy of words
@@ -1130,6 +1130,7 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                 
                 // Click to move logic
                 tile.addEventListener('click', () => {
+                    if (!this.isQuestionActive) return; // PREVENT clicks when question inactive
                     audio.play('button-click.mp3');
                     if (tile.parentElement.id === 'wordPool') {
                         uiController.dropZone.appendChild(tile);
@@ -1145,47 +1146,47 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
         }
 
         checkAnswer() {
-    if (!this.isQuestionActive) return; // ADD THIS LINE - Prevent multiple submission
-    const userWords = Array.from(uiController.dropZone.children).map(tile => tile.textContent);
-    const userSentence = userWords.join(' ');
+            if (!this.isQuestionActive) return; // PREVENT multiple submissions
             
-    // Compare (simple normalization)
-    const isCorrect = userSentence.trim() === gameState.currentQ.original.trim();
+            const userWords = Array.from(uiController.dropZone.children).map(tile => tile.textContent);
+            const userSentence = userWords.join(' ');
+            
+            // Compare (simple normalization)
+            const isCorrect = userSentence.trim() === gameState.currentQ.original.trim();
 
-    this.isQuestionActive = false; // ADD THIS LINE - Lock question immediately
+            this.isQuestionActive = false; // LOCK question immediately
 
-    if (isCorrect) {
-        this.handleCorrect();
-    } else {
-        this.handleWrong();
-    }
+            if (isCorrect) {
+                this.handleCorrect();
+            } else {
+                this.handleWrong();
+            }
 
-    // Check Win/Loss conditions
-    if (gameState.ghostHP <= 0) {
-        this.endGame(true);
-    } else if (gameState.playerHP <= 0) {
-        this.endGame(false);
-    } else {
-        // Next question delay
-        setTimeout(() => this.loadNextQuestion(), 2000);
-    }
-}
+            // Check Win/Loss conditions
+            if (gameState.ghostHP <= 0) {
+                this.endGame(true);
+            } else if (gameState.playerHP <= 0) {
+                this.endGame(false);
+            } else {
+                // Next question delay
+                setTimeout(() => this.loadNextQuestion(), 2000);
+            }
+        }
 
-// In handleCorrect method - disable tiles after correct answer
-handleCorrect() {
-    this.isQuestionActive = false; // ADD THIS LINE - Ensure lock
-    
-    // Disable all word tiles
-    document.querySelectorAll('.word-tile').forEach(tile => {
-        tile.style.pointerEvents = 'none';
-        tile.style.opacity = '0.5';
-    });
-    
-    // Disable submit button
-    document.getElementById('submitBtn').disabled = true;
-    
-    audio.play('correct-answer.mp3');
-    audio.play('ghost-hit.mp3');
+        handleCorrect() {
+            this.isQuestionActive = false; // ENSURE lock
+            
+            // Disable all word tiles
+            document.querySelectorAll('.word-tile').forEach(tile => {
+                tile.style.pointerEvents = 'none';
+                tile.style.opacity = '0.5';
+            });
+            
+            // Disable submit button
+            document.getElementById('submitBtn').disabled = true;
+            
+            audio.play('correct-answer.mp3');
+            audio.play('ghost-hit.mp3');
             
             uiController.showHitEffect();
             document.getElementById('ghostChar').classList.add('shake-anim'); // Ghost hit anim
@@ -1201,20 +1202,19 @@ handleCorrect() {
         }
 
         handleWrong() {
-    this.isQuestionActive = false; // ADD THIS LINE - Ensure lock
-    
-    // Disable all word tiles
-    document.querySelectorAll('.word-tile').forEach(tile => {
-        tile.style.pointerEvents = 'none';
-        tile.style.opacity = '0.5';
-    });
-    
-    // Disable submit button
-    document.getElementById('submitBtn').disabled = true;
-    
-    audio.play('wrong-answer.mp3');
-    audio.play('player-hit.mp3');
-
+            this.isQuestionActive = false; // ENSURE lock
+            
+            // Disable all word tiles
+            document.querySelectorAll('.word-tile').forEach(tile => {
+                tile.style.pointerEvents = 'none';
+                tile.style.opacity = '0.5';
+            });
+            
+            // Disable submit button
+            document.getElementById('submitBtn').disabled = true;
+            
+            audio.play('wrong-answer.mp3');
+            audio.play('player-hit.mp3');
             
             uiController.shakeScreen();
             uiController.flashDamage();
@@ -1226,6 +1226,7 @@ handleCorrect() {
 
         endGame(isVictory) {
             gameState.isGameActive = false;
+            this.isQuestionActive = false; // ENSURE final lock
             audio.stopBGM();
             
             // Update End Screen Stats
@@ -1245,159 +1246,164 @@ handleCorrect() {
             }
         }
 
-async shareToWhatsApp(event) {
-    const btn = event.target; 
-    const originalText = btn.textContent;
-    btn.textContent = "⏳ Uploading...";
-    btn.disabled = true;
+        async shareToWhatsApp(event) {
+            const btn = event.target; 
+            const originalText = btn.textContent;
+            btn.textContent = "⏳ Uploading...";
+            btn.disabled = true;
 
-    // 1. Fill Certificate Data
-    document.getElementById('certName').textContent = gameState.name;
-    document.getElementById('certXP').textContent = gameState.xp;
-    document.getElementById('certStreak').textContent = gameState.highStreak;
+            // 1. Fill Certificate Data
+            document.getElementById('certName').textContent = gameState.name;
+            document.getElementById('certXP').textContent = gameState.xp;
+            document.getElementById('certStreak').textContent = gameState.highStreak;
 
-    try {
-        // 2. Generate Image with CORS-safe configuration
-        const canvas = await html2canvas(document.getElementById('certificateNode'), {
-            useCORS: true,
-            allowTaint: false,
-            backgroundColor: null,
-            scale: 2,
-            logging: false
-        });
-        
-        canvas.toBlob(async (blob) => {
-            if (!blob) throw new Error("Image generation failed");
-
-            // 3. Define Filename
-            const timestamp = Date.now();
-            const filename = `cert_${gameState.name.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.png`;
-
-            let imageUrl = "";
-            let dbSuccess = false;
-            
             try {
-                // 4. Upload to Supabase Storage
-                console.log("Uploading to Supabase storage...", filename, blob.size);
-                const { data: uploadData, error: uploadError } = await supabase
-                    .storage
-                    .from('certificates')
-                    .upload(filename, blob, {
-                        cacheControl: '3600',
-                        upsert: false
-                    });
-
-                if (uploadError) {
-                    console.error("Storage upload error:", uploadError);
-                    throw new Error(`Storage upload failed: ${uploadError.message}`);
-                }
-
-                console.log("Storage upload success:", uploadData);
-
-                // 5. Get Public URL
-                const { data: publicUrlData } = supabase
-                    .storage
-                    .from('certificates')
-                    .getPublicUrl(filename);
-                
-                imageUrl = publicUrlData.publicUrl;
-                console.log("Public URL:", imageUrl);
-
-                // 6. Save to Database with better error handling
-                console.log("Saving to database...", {
-                    player_name: gameState.name,
-                    xp: gameState.xp,
-                    streak: gameState.highStreak,
-                    image_url: imageUrl
+                // 2. Generate Image with CORS-safe configuration
+                const canvas = await html2canvas(document.getElementById('certificateNode'), {
+                    useCORS: true,
+                    allowTaint: false,
+                    backgroundColor: null,
+                    scale: 2,
+                    logging: false
                 });
+                
+                canvas.toBlob(async (blob) => {
+                    if (!blob) throw new Error("Image generation failed");
 
-                const { data: dbData, error: dbError } = await supabase
-                    .from('leaderboard')
-                    .insert([{ 
-                        player_name: gameState.name, 
-                        xp: gameState.xp, 
-                        streak: gameState.highStreak,
-                        image_url: imageUrl,
-                        created_at: new Date().toISOString()
-                    }])
-                    .select(); // Add .select() to get response
+                    // 3. Define Filename
+                    const timestamp = Date.now();
+                    const filename = `cert_${gameState.name.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.png`;
 
-                if (dbError) {
-                    console.error("Database insert error:", dbError);
-                    console.log("Trying alternative table name...");
+                    let imageUrl = "";
+                    let dbSuccess = false;
                     
-                    // Try alternative table names
-                    const { error: altError } = await supabase
-                        .from('scores')
-                        .insert([{ 
-                            player_name: gameState.name, 
-                            xp: gameState.xp, 
+                    try {
+                        // 4. Upload to Supabase Storage
+                        console.log("Uploading to Supabase storage...", filename, blob.size);
+                        const { data: uploadData, error: uploadError } = await supabase
+                            .storage
+                            .from('certificates')
+                            .upload(filename, blob, {
+                                cacheControl: '3600',
+                                upsert: false
+                            });
+
+                        if (uploadError) {
+                            console.error("Storage upload error:", uploadError);
+                            throw new Error(`Storage upload failed: ${uploadError.message}`);
+                        }
+
+                        console.log("Storage upload success:", uploadData);
+
+                        // 5. Get Public URL
+                        const { data: publicUrlData } = supabase
+                            .storage
+                            .from('certificates')
+                            .getPublicUrl(filename);
+                        
+                        imageUrl = publicUrlData.publicUrl;
+                        console.log("Public URL:", imageUrl);
+
+                        // 6. Save to Database with better error handling
+                        console.log("Saving to database...", {
+                            player_name: gameState.name,
+                            xp: gameState.xp,
                             streak: gameState.highStreak,
-                            image_url: imageUrl,
-                            created_at: new Date().toISOString()
-                        }]);
-                    
-                    if (altError) {
-                        console.error("Alternative table also failed:", altError);
-                        throw new Error(`Database insert failed: ${dbError.message}`);
+                            image_url: imageUrl
+                        });
+
+                        const { data: dbData, error: dbError } = await supabase
+                            .from('leaderboard')
+                            .insert([{ 
+                                player_name: gameState.name, 
+                                xp: gameState.xp, 
+                                streak: gameState.highStreak,
+                                image_url: imageUrl,
+                                created_at: new Date().toISOString()
+                            }])
+                            .select(); // Add .select() to get response
+
+                        if (dbError) {
+                            console.error("Database insert error:", dbError);
+                            console.log("Trying alternative table name...");
+                            
+                            // Try alternative table names
+                            const { error: altError } = await supabase
+                                .from('scores')
+                                .insert([{ 
+                                    player_name: gameState.name, 
+                                    xp: gameState.xp, 
+                                    streak: gameState.highStreak,
+                                    image_url: imageUrl,
+                                    created_at: new Date().toISOString()
+                                }]);
+                            
+                            if (altError) {
+                                console.error("Alternative table also failed:", altError);
+                                throw new Error(`Database insert failed: ${dbError.message}`);
+                            }
+                            
+                            console.log("Saved to alternative 'scores' table");
+                            dbSuccess = true;
+                        } else {
+                            console.log("Database insert success:", dbData);
+                            dbSuccess = true;
+                        }
+
+                    } catch (storageError) {
+                        console.warn("Supabase storage failed, falling back to localStorage:", storageError);
+                        
+                        // Fallback: Save to localStorage
+                        const localData = {
+                            player_name: gameState.name,
+                            xp: gameState.xp,
+                            streak: gameState.highStreak,
+                            timestamp: Date.now()
+                        };
+                        
+                        // Convert blob to data URL for localStorage
+                        const reader = new FileReader();
+                        reader.onloadend = function() {
+                            localData.certificate = reader.result;
+                            const saves = JSON.parse(localStorage.getItem('dungeonSpellerSaves') || '[]');
+                            saves.push(localData);
+                            localStorage.setItem('dungeonSpellerSaves', JSON.stringify(saves));
+                            console.log("Saved locally:", localData);
+                        };
+                        reader.readAsDataURL(blob);
+                        
+                        dbSuccess = true;
+                        imageUrl = "Saved locally";
+                    }
+
+                    // 7. Show success message
+                    if (dbSuccess) {
+                        btn.textContent = "✅ Saved!";
+                        alert(`Game results saved successfully!\n\nPlayer: ${gameState.name}\nXP: ${gameState.xp}\nBest Streak: ${gameState.highStreak}\n\nCheck console for details.`);
+                    } else {
+                        btn.textContent = "⚠️ Partial Save";
+                        alert("Results saved locally but cloud sync failed.");
                     }
                     
-                    console.log("Saved to alternative 'scores' table");
-                    dbSuccess = true;
-                } else {
-                    console.log("Database insert success:", dbData);
-                    dbSuccess = true;
-                }
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }, 3000);
 
-            } catch (storageError) {
-                console.warn("Supabase storage failed, falling back to localStorage:", storageError);
-                
-                // Fallback: Save to localStorage
-                const localData = {
-                    player_name: gameState.name,
-                    xp: gameState.xp,
-                    streak: gameState.highStreak,
-                    timestamp: Date.now()
-                };
-                
-                // Convert blob to data URL for localStorage
-                const reader = new FileReader();
-                reader.onloadend = function() {
-                    localData.certificate = reader.result;
-                    const saves = JSON.parse(localStorage.getItem('dungeonSpellerSaves') || '[]');
-                    saves.push(localData);
-                    localStorage.setItem('dungeonSpellerSaves', JSON.stringify(saves));
-                    console.log("Saved locally:", localData);
-                };
-                reader.readAsDataURL(blob);
-                
-                dbSuccess = true;
-                imageUrl = "Saved locally";
-            }
+                }, 'image/png', 0.95);
 
-            // 7. Show success message (removed WhatsApp integration for now)
-            if (dbSuccess) {
-                btn.textContent = "✅ Saved!";
-                alert(`Game results saved successfully!\n\nPlayer: ${gameState.name}\nXP: ${gameState.xp}\nBest Streak: ${gameState.highStreak}\n\nCheck console for details.`);
-            } else {
-                btn.textContent = "⚠️ Partial Save";
-                alert("Results saved locally but cloud sync failed.");
-            }
-            
-            setTimeout(() => {
+            } catch (err) {
+                console.error("Critical error in shareToWhatsApp:", err);
+                alert("Error: " + err.message + "\n\nCheck browser console for details.");
+                btn.textContent = "❌ Error";
                 btn.disabled = false;
-                btn.textContent = originalText;
-            }, 3000);
+            }
+        }
 
-        }, 'image/png', 0.95);
-
-    } catch (err) {
-        console.error("Critical error in shareToWhatsApp:", err);
-        alert("Error: " + err.message + "\n\nCheck browser console for details.");
-        btn.textContent = "❌ Error";
-        btn.disabled = false;
+        restartGame() {
+            this.startGame();
+        }
     }
-}
     // --- 5. STARTUP ---
     const gameController = new GameController();
 </script>
