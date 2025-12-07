@@ -683,7 +683,7 @@
         <div style="margin-top:20px; font-size:14px; color:#94a3b8;">Dungeon Speller Challenge</div>
     </div>
 </div>
-<script>
+<scrip<script>
     /* ═══════════════════════════════════════════════════════════════════════
        PART 2: DATA & CONFIGURATION
        ═══════════════════════════════════════════════════════════════════════ */
@@ -1045,10 +1045,15 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             // Submit Answer
             document.getElementById('submitBtn').addEventListener('click', () => this.checkAnswer());
             
-            // Remove loading screen after minimal timeout
-            setTimeout(() => {
-                document.getElementById('loadingScreen').classList.remove('active');
-            }, 1500);
+            // FIXED: Ensure loading screen transitions properly
+            // Wait for DOM to be fully loaded first
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    console.log("Transitioning from loading screen to menu...");
+                    document.getElementById('loadingScreen').classList.remove('active');
+                    uiController.showScreen('menuScreen');
+                }, 1000); // Reduced to 1 second for faster loading
+            });
         }
 
         startGame() {
