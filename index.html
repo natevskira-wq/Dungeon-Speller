@@ -3,9 +3,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Dungeon Speller - Spelling Adventure Game</title>
-        <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,14 +35,26 @@
         --font-body: 'Philosopher', serif;
         --font-ui: 'Rajdhani', sans-serif;
         --font-arabic: 'Noto Sans Arabic', sans-serif;
+        
+        /* Responsive sizes */
+        --mobile-scale: 0.85;
     }
 
     * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-        user-select: none; /* Prevent text selection during drag/click */
-        -webkit-tap-highlight-color: transparent;
+        -webkit-tap-highlight-color: transparent; /* Better mobile tap feedback */
+        -webkit-touch-callout: none; /* Disable callout on mobile */
+    }
+
+    /* Allow text selection only for specific elements */
+    body, .word-tile, .btn {
+        user-select: none;
+    }
+
+    input[type="text"] {
+        user-select: text;
     }
 
     body {
@@ -55,6 +67,9 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        touch-action: manipulation; /* Better touch responsiveness */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     /* --- LAYOUT UTILITIES --- */
@@ -75,6 +90,7 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        overflow: hidden;
     }
 
     .screen.active {
@@ -95,20 +111,31 @@
         opacity: 0.6;
     }
 
+    /* Hide video on very small screens to save performance */
+    @media (max-width: 480px) {
+        .bg-video {
+            display: none;
+        }
+        #gameScreen {
+            background: linear-gradient(to bottom, #0f172a, #1a1a2e);
+        }
+    }
+
     /* --- TYPOGRAPHY --- */
     h1 {
         font-family: var(--font-title);
-        font-size: 3.5rem;
+        font-size: clamp(2.5rem, 6vw, 4rem);
         color: var(--gold);
         text-shadow: 0 0 15px var(--gold-glow);
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
         text-align: center;
-        letter-spacing: 2px;
+        letter-spacing: 1px;
+        line-height: 1.2;
     }
 
     h2 {
         font-family: var(--font-title);
-        font-size: 2rem;
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
         color: var(--text-light);
         margin-bottom: 1rem;
     }
@@ -118,9 +145,9 @@
         background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         border: 2px solid var(--accent-blue);
         color: white;
-        padding: 12px 30px;
+        padding: clamp(12px, 4vw, 15px) clamp(25px, 6vw, 35px);
         font-family: var(--font-ui);
-        font-size: 1.2rem;
+        font-size: clamp(1.2rem, 4vw, 1.5rem);
         font-weight: 700;
         text-transform: uppercase;
         border-radius: 8px;
@@ -128,7 +155,18 @@
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         margin: 10px;
-        min-width: 150px;
+        min-width: 160px;
+        min-height: 50px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
     .btn:hover:not(:disabled) {
@@ -142,6 +180,7 @@
         border-color: #64748b;
         cursor: not-allowed;
         opacity: 0.7;
+        transform: none !important;
     }
 
     .btn-gold {
@@ -152,37 +191,47 @@
 
     /* --- MENU SCREEN --- */
     #menuScreen {
-        background-image: url('door-closed.png'); /* Fallback */
-        background-color: #0f172a; /* Fallback color */
+        background-image: url('door-closed.png');
+        background-color: #0f172a;
     }
 
     .menu-panel {
         background: var(--bg-secondary);
-        padding: 40px;
+        padding: clamp(25px, 6vw, 45px);
         border-radius: 16px;
         border: 1px solid var(--accent-blue);
         box-shadow: 0 0 40px rgba(0,0,0,0.5);
         text-align: center;
         backdrop-filter: blur(10px);
-        max-width: 500px;
+        max-width: min(550px, 90vw);
         width: 90%;
+        margin: 25px;
     }
 
     .lang-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-bottom: 20px;
+        gap: 12px;
+        margin-bottom: 25px;
     }
 
     .lang-btn {
         background: rgba(255,255,255,0.1);
         border: 1px solid var(--text-dim);
-        padding: 10px;
+        padding: 15px;
         border-radius: 6px;
         color: var(--text-light);
         cursor: pointer;
         transition: 0.2s;
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(1.1rem, 3vw, 1.2rem);
+    }
+
+    .lang-btn:active {
+        transform: scale(0.98);
     }
 
     .lang-btn.selected {
@@ -194,14 +243,14 @@
 
     input[type="text"] {
         width: 100%;
-        padding: 15px;
-        margin: 20px 0;
+        padding: 18px;
+        margin: 25px 0;
         background: rgba(0,0,0,0.3);
         border: 2px solid var(--accent-blue);
         border-radius: 8px;
         color: white;
         font-family: var(--font-ui);
-        font-size: 1.2rem;
+        font-size: clamp(1.2rem, 4vw, 1.4rem);
         text-align: center;
     }
 
@@ -215,24 +264,27 @@
     #gameScreen {
         background-image: url('dungeon-corridor.png');
         justify-content: space-between;
-        padding: 20px 0;
+        padding: 15px 0;
     }
 
     .hud-top {
         width: 100%;
-        padding: 10px 20px;
+        padding: 15px clamp(15px, 4vw, 25px);
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         z-index: 5;
+        flex-wrap: wrap;
+        gap: 12px;
     }
 
     .player-panel, .ghost-panel {
         background: var(--bg-secondary);
-        padding: 10px 20px;
+        padding: 15px 20px;
         border-radius: 12px;
         border: 1px solid var(--accent-blue);
-        min-width: 200px;
+        min-width: min(220px, 45vw);
+        flex: 1;
     }
 
     .stats-row {
@@ -240,13 +292,13 @@
         justify-content: space-between;
         font-family: var(--font-ui);
         font-weight: 700;
-        font-size: 1.1rem;
-        margin-bottom: 5px;
+        font-size: clamp(1.1rem, 3vw, 1.3rem);
+        margin-bottom: 8px;
     }
 
     .hp-container {
         width: 100%;
-        height: 12px;
+        height: 15px;
         background: #334155;
         border-radius: 6px;
         overflow: hidden;
@@ -266,8 +318,8 @@
         position: absolute;
         top: 10%;
         right: 5%;
-        width: 100px;
-        height: 150px;
+        width: min(100px, 20vw);
+        height: min(150px, 30vw);
         opacity: 0.8;
         mix-blend-mode: screen;
         pointer-events: none;
@@ -283,12 +335,13 @@
         align-items: center;
         position: relative;
         width: 100%;
+        padding: 15px;
     }
 
     .ghost-sprite {
-        width: 350px;
-        height: 420px;
-        background-image: url('ghost-main.png'); /* Fallback */
+        width: min(380px, 85vw);
+        height: min(450px, 95vw);
+        background-image: url('ghost-main.png');
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
@@ -303,8 +356,8 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 300px;
-        height: 300px;
+        width: min(300px, 70vw);
+        height: min(300px, 70vw);
         background-image: url('ghost-hit-effect.png');
         background-size: cover;
         display: none;
@@ -312,79 +365,65 @@
     }
 
     .dialogue-box {
-    position: absolute;
-    
-    /* --- POSITION CONTROLS --- */
-    top: 60%;           /* Distance from TOP of the ghost area */
-    left: 50%;          /* Center Horizontally */
-    transform: translate(-50%, 0); /* Centering trick */
-    
-    /* --- SIZE --- */
-    width: 50%;         /* Width of the box */
-    min-height: 20px;
-    
-    /* --- VISUALS --- */
-    background: rgba(0, 0, 0, 0.85); /* Dark background */
-    border: 2px solid #fbbf24;       /* Gold Border */
-    border-radius: 15px;
-    box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
-    
-    /* --- LAYOUT INSIDE (Keeps text in middle) --- */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 20;
-}
+        position: absolute;
+        top: 60%;
+        left: 50%;
+        transform: translate(-50%, 0);
+        width: min(550px, 90%);
+        min-height: 25px;
+        background: rgba(0, 0, 0, 0.85);
+        border: 2px solid #fbbf24;
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+        padding: 8px;
+    }
 
-/* 2. The Text (Content) - Just styling, no position */
-#ghostText {
-    margin: 0;          /* Remove default margins */
-    padding: 15px;      /* Space inside the box */
-    
-    /* --- FONT CONTROLS --- */
-    color: #fbbf24;     /* Gold Text */
-    font-family: 'Philosopher', serif;
-    font-size: 1.4rem;  /* Text Size */
-    line-height: 1.4;
-    text-align: center;
-}
+    #ghostText {
+        margin: 0;
+        padding: clamp(10px, 3vw, 18px);
+        color: #fbbf24;
+        font-family: 'Philosopher', serif;
+        font-size: clamp(1.2rem, 4vw, 1.6rem);
+        line-height: 1.5;
+        text-align: center;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
 
     /* Interaction Area */
     .interaction-area {
         background: linear-gradient(to top, #0f172a 90%, transparent);
         width: 100%;
-        padding: 20px;
+        padding: clamp(15px, 4vw, 25px);
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 15px;
+        gap: 12px;
         z-index: 10;
     }
 
     .sentence-preview {
-                /* --- 1. POSITION CONTROLS --- */
-    position: absolute;   /* Detach from the box so we can move it anywhere */
-    top: 70%;             /* Distance from TOP of screen (Change this to move Up/Down) */
-    left: 50%;            /* Center Horizontally */
-    transform: translate(-50%, -50%); /* Perfect centering alignment */
-    z-index: 50;          /* Ensure it sits on top of the Ghost */
-    
-    /* --- 2. SIZE & FONT CONTROLS --- */
-    font-size: 1.0rem;    /* Text Size (e.g., 2rem, 30px, 40px) */
-    font-family: var(--font-title); /* Use the fancy font */
-    font-weight: bold;
-    text-align: center;
-    width: 90%;           /* Prevent text from running off screen */
-    
-    /* --- 3. COLORS --- */
-    color: #fbbf24;       /* Gold text */
-    text-shadow: 
-        0 2px 0 #000, 
-        0 0 20px rgba(0,0,0,0.8); /* Strong shadow to read over images */
-
-    /* Keep animation logic working */
-    pointer-events: none; /* Let clicks pass through it */
-    transition: opacity 0.5s;
+        position: absolute;
+        top: 70%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 50;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        font-family: var(--font-title);
+        font-weight: bold;
+        text-align: center;
+        width: 90%;
+        color: #fbbf24;
+        text-shadow: 
+            0 2px 0 #000, 
+            0 0 20px rgba(0,0,0,0.8);
+        pointer-events: none;
+        transition: opacity 0.5s;
+        padding: 0 15px;
     }
 
     .drop-zone, .word-pool {
@@ -393,9 +432,9 @@
         justify-content: center;
         gap: 10px;
         width: 100%;
-        max-width: 800px;
-        min-height: 60px;
-        padding: 10px;
+        max-width: 850px;
+        min-height: 70px;
+        padding: 15px;
     }
 
     .drop-zone {
@@ -408,13 +447,25 @@
         background: var(--bg-secondary);
         border: 1px solid var(--accent-purple);
         color: white;
-        padding: 8px 16px;
+        padding: clamp(8px, 3vw, 10px) clamp(15px, 4vw, 20px);
         border-radius: 6px;
         cursor: pointer;
         font-family: var(--font-ui);
-        font-size: 1.1rem;
+        font-size: clamp(1.1rem, 3vw, 1.3rem);
         transition: all 0.2s;
         box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    .word-tile:active {
+        transform: scale(0.95);
+        background: var(--accent-purple);
     }
 
     .word-tile:hover {
@@ -422,33 +473,55 @@
         transform: scale(1.05);
     }
 
+    /* Disabled state for tiles */
+    .word-tile.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
     /* --- VICTORY / DEFEAT --- */
-    #victoryScreen { background-image: url('victory-bg.png'); }
-    #defeatScreen { background-image: url('defeat-bg.png'); }
+    #victoryScreen { 
+        background-image: url('victory-bg.png'); 
+        background-color: #0f172a;
+    }
+    #defeatScreen { 
+        background-image: url('defeat-bg.png'); 
+        background-color: #0f172a;
+    }
 
     .end-panel {
         background: rgba(0,0,0,0.85);
-        padding: 40px;
+        padding: clamp(25px, 6vw, 45px);
         border-radius: 20px;
         text-align: center;
         border: 2px solid var(--gold);
         box-shadow: 0 0 50px var(--gold-glow);
-        max-width: 600px;
+        max-width: min(650px, 90vw);
         width: 90%;
+        margin: 25px;
     }
 
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-        margin: 30px 0;
+        gap: 12px;
+        margin: 25px 0;
         background: rgba(255,255,255,0.05);
         padding: 20px;
         border-radius: 10px;
     }
 
-    .stat-item h3 { font-size: 0.9rem; color: var(--text-dim); margin-bottom: 5px; }
-    .stat-item p { font-size: 1.5rem; font-weight: bold; color: var(--gold); }
+    .stat-item h3 { 
+        font-size: clamp(1rem, 3vw, 1.2rem);
+        color: var(--text-dim); 
+        margin-bottom: 8px;
+    }
+    .stat-item p { 
+        font-size: clamp(1.5rem, 4vw, 1.8rem);
+        font-weight: bold; 
+        color: var(--gold); 
+    }
 
     /* --- RTL SUPPORT --- */
     body.rtl { direction: rtl; font-family: var(--font-arabic); }
@@ -478,14 +551,119 @@
 
     /* --- RESPONSIVE --- */
     @media (max-width: 768px) {
-        h1 { font-size: 2.5rem; }
-        .hud-top { flex-direction: column; gap: 10px; align-items: stretch; }
-        .ghost-sprite { width: 180px; height: 220px; }
-        .dialogue-box { font-size: 0.9rem; bottom: 5px; }
-        .word-tile { padding: 6px 12px; font-size: 0.9rem; }
-        .stats-grid { grid-template-columns: 1fr; gap: 10px; }
+        .hud-top {
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+        }
+        
+        .player-panel, .ghost-panel {
+            min-width: 100%;
+            padding: 12px 15px;
+        }
+        
+        .ghost-sprite {
+            width: min(280px, 75vw);
+            height: min(330px, 85vw);
+            margin-top: 25px;
+        }
+        
+        .dialogue-box {
+            top: 15%;
+            width: 90%;
+            padding: 5px;
+        }
+        
+        #ghostText {
+            font-size: 1.1rem;
+            line-height: 1.3;
+            padding: 8px;
+        }
+        
+        .word-tile {
+            padding: 10px 15px;
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .btn {
+            min-width: 140px;
+            padding: 12px 25px;
+        }
+        
+        .torch-overlay {
+            display: none;
+        }
     }
     
+    @media (max-width: 480px) {
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .menu-panel {
+            padding: 20px;
+        }
+        
+        .lang-btn {
+            padding: 12px;
+            font-size: 1rem;
+        }
+        
+        .ghost-sprite {
+            width: 200px;
+            height: 240px;
+        }
+        
+        .drop-zone, .word-pool {
+            gap: 6px;
+            padding: 8px;
+        }
+        
+        .word-tile {
+            padding: 8px 12px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            min-width: 130px;
+            padding: 10px 20px;
+            font-size: 1.1rem;
+        }
+    }
+    
+    @media (orientation: landscape) and (max-height: 600px) {
+        .ghost-sprite {
+            width: 170px;
+            height: 200px;
+        }
+        
+        .dialogue-box {
+            top: 10%;
+        }
+        
+        .interaction-area {
+            padding: 8px;
+        }
+        
+        .sentence-preview {
+            top: 60%;
+            font-size: 1.8rem;
+        }
+    }
+
+    /* Prevent text size adjustment on iOS */
+    @media screen and (max-device-width: 480px) {
+        body {
+            -webkit-text-size-adjust: 100%;
+        }
+    }
+
     /* Loader */
     .loader {
         border: 5px solid #f3f3f3;
@@ -494,56 +672,20 @@
         width: 50px;
         height: 50px;
         animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
+        margin: 0 auto 25px;
     }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media (max-width: 768px) {
     
-    .dialogue-box {
-        /* 1. Positioning: Move it up near the HUD */
-        top: 15% !important; 
-        bottom: auto !important; /* Stop using bottom positioning */
-        
-        /* 2. Sizing: Force it to be small */
-        width: 90% !important;        /* Not full width */
-        min-height: 0 !important;     /* CRITICAL: Remove fixed height */
-        height: auto !important;      /* grow with text only */
-        
-        /* 3. Spacing: Make it tight */
-        padding: 8px 12px !important; /* Very small padding */
-        
-        /* 4. Visuals: Make it transparent & light */
-        background: rgba(0, 0, 0, 0.5) !important; /* See-through */
-        border: 1px solid var(--gold) !important;  /* Thinner border */
-        box-shadow: none !important;               /* Remove glow to save space */
-        border-radius: 15px !important;
+    @keyframes spin { 
+        0% { transform: rotate(0deg); } 
+        100% { transform: rotate(360deg); } 
     }
-
-    /* 5. Text: Make it readable but compact */
-    #ghostText {
-        font-size: 0.9rem !important; /* Smaller font */
-        line-height: 1.2 !important;  /* Tighter lines */
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    /* Adjust Ghost Position so it sits BELOW the new box location */
-            .ghost-sprite {
-        /* CHANGE THESE NUMBERS */
-        width: 300px;   /* Was 140px */
-        height: 300px;  /* Was 140px */
-        
-        margin-top: 60px; /* Keep this to avoid hitting dialogue box */
-    }
-}
 </style>
 </head>
 <body>
 
 <!-- SCREEN 1: MENU -->
-<div id="menuScreen" class="screen active">
-    <!-- Optional Video Background -->
-    <!-- <video class="bg-video" src="door-opening.mp4" autoplay muted loop></video> -->
+<div id="menuScreen" class="screen">
+    <video class="bg-video" src="door-opening.mp4" autoplay muted loop playsinline preload="metadata"></video>
     
     <div class="menu-panel">
         <h1 id="menuTitle">Dungeon Speller</h1>
@@ -556,7 +698,7 @@
         </div>
 
         <label for="playerName" id="nameLabel" style="color:var(--text-dim);">Enter Your Name:</label>
-        <input type="text" id="playerName" maxlength="20" placeholder="Hero Name..." autocomplete="off">
+        <input type="text" id="playerName" maxlength="20" placeholder="Hero Name..." autocomplete="off" autocorrect="off" autocapitalize="words">
         
         <button id="enterBtn" class="btn btn-gold" disabled>ENTER DUNGEON</button>
     </div>
@@ -564,9 +706,9 @@
 
 <!-- SCREEN 2: GAME ARENA -->
 <div id="gameScreen" class="screen">
-    <video class="bg-video" src="dungeon-ambient.mp4" autoplay muted loop playsinline></video>
+    <video class="bg-video" src="dungeon-ambient.mp4" autoplay muted loop playsinline preload="metadata"></video>
     <!-- Torch Video Loop -->
-    <video class="torch-overlay" src="torch-fire.mp4" autoplay muted loop playsinline></video>
+    <video class="torch-overlay" src="torch-fire.mp4" autoplay muted loop playsinline preload="metadata"></video>
 
     <div class="hud-top">
         <div class="player-panel">
@@ -577,7 +719,7 @@
             <div class="hp-container">
                 <div id="playerHPBar" class="hp-bar"></div>
             </div>
-            <div class="stats-row" style="margin-top:5px; font-size:0.9rem; color:var(--text-dim);">
+            <div class="stats-row" style="margin-top:8px; font-size:1.1rem; color:var(--text-dim);">
                 <span id="uiStreak">Streak: 🔥 0</span>
             </div>
         </div>
@@ -617,7 +759,7 @@
 <div id="victoryScreen" class="screen">
     <div class="end-panel">
         <h1 id="vicTitle">VICTORY!</h1>
-        <p id="vicMessage" style="font-size:1.2rem; margin-bottom:20px;">The dungeon is cleansed!</p>
+        <p id="vicMessage" style="font-size:1.4rem; margin-bottom:25px;">The dungeon is cleansed!</p>
         
         <div class="stats-grid">
             <div class="stat-item">
@@ -634,10 +776,10 @@
             </div>
         </div>
 
-        <p id="itemLabel" style="color:var(--gold); margin-bottom:20px;">Item Acquired: <span style="color:white;">Enchanted Sword ⚔️</span></p>
-            <button class="btn" style="background:#25D366; border-color:#128C7E;" onclick="gameController.shareToWhatsApp(event)">
-    📱 Save & Share
-</button>
+        <p id="itemLabel" style="color:var(--gold); margin-bottom:25px;">Item Acquired: <span style="color:white;">Composition Quill.png ✍️</span></p>
+        <button class="btn" style="background:#25D366; border-color:#128C7E;" onclick="gameController.shareToWhatsApp(event)">
+            📱 Save & Share
+        </button>
         <button class="btn btn-gold" onclick="gameController.restartGame()">Play Again</button>
         <button class="btn" onclick="uiController.showScreen('menuScreen')">Main Menu</button>
     </div>
@@ -663,26 +805,59 @@
 <!-- LOADING OVERLAY -->
 <div id="loadingScreen" class="screen active" style="background:#000; z-index:100;">
     <div class="loader"></div>
-    <p style="color:var(--text-dim); margin-top:10px;">Summoning assets...</p>
+    <p style="color:var(--text-dim); margin-top:15px; text-align:center; padding:0 25px;">Loading Dungeon Speller...</p>
+    <p id="loadingProgress" style="color:var(--text-dim); margin-top:8px; font-size:1.1rem;">Initializing...</p>
 </div>
-    <div id="certificateNode" style="position:fixed; left:-9999px; top:0; width:600px; height:400px; background:#1a1a2e; border:4px solid #fbbf24; padding:20px; text-align:center; font-family:'Cinzel', serif; color:white; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999;">
-    <!-- Background Layer - Removed image to prevent CORS issues -->
-    <div style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0.3; background:linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); background-size:cover;"></div>
+
+<!-- CERTIFICATE (HIDDEN) -->
+<div id="certificateNode" style="position:fixed; left:-9999px; top:-9999px; width:800px; height:600px; background:#1a1a2e; border:10px solid #fbbf24; padding:40px; text-align:center; font-family:'Cinzel', serif; color:white; z-index:9999;">
+    <div style="position:absolute; top:0; left:0; width:100%; height:10px; background:#fbbf24;"></div>
+    <div style="position:absolute; top:10px; left:50%; transform:translateX(-50%); width:80px; height:80px; background:#1a1a2e; border-radius:50%; border:6px solid #fbbf24; display:flex; align-items:center; justify-content:center; font-size:40px;">🏆</div>
     
-    <!-- Content Layer -->
-    <div style="z-index:2; position:relative;">
-        <h1 style="color:#fbbf24; font-size:40px; margin-bottom:10px; text-shadow:0 2px 4px black;">DUNGEON CONQUERED</h1>
-        <p style="font-family:'Philosopher', serif; font-size:24px; margin:10px 0;">This certifies that</p>
-        <h2 id="certName" style="font-size:48px; color:#10b981; margin:5px 0; text-shadow:0 0 10px #10b981;">HERO NAME</h2>
-        <p style="font-family:'Philosopher', serif; font-size:20px;">Has cleansed the dungeon of the Spelling Specter.</p>
+    <div style="margin-top:60px;">
+        <h1 style="color:#fbbf24; font-size:48px; margin-bottom:30px; text-shadow:0 2px 8px rgba(0,0,0,0.8);">DUNGEON CONQUERED</h1>
         
-        <div style="display:flex; justify-content:center; gap:30px; margin-top:20px; font-family:'Rajdhani', sans-serif; font-size:24px;">
-            <div>⭐ XP: <span id="certXP">0</span></div>
-            <div>🔥 Streak: <span id="certStreak">0</span></div>
+        <div style="margin:30px 0; padding:30px; border:3px solid rgba(251, 191, 36, 0.3); border-radius:15px; background:rgba(0,0,0,0.3);">
+            <p style="font-family:'Philosopher', serif; font-size:28px; margin:15px 0; color:#cbd5e1;">This certifies that</p>
+            <h2 id="certName" style="font-size:56px; color:#10b981; margin:20px 0; text-shadow:0 0 20px rgba(16, 185, 129, 0.5); padding:15px; border-bottom:3px solid rgba(251, 191, 36, 0.5);">HERO NAME</h2>
+            <p style="font-family:'Philosopher', serif; font-size:24px; margin:25px 0; line-height:1.5; color:#e2e8f0;">
+                Has bravely cleansed the dungeon<br>
+                of the Spelling Specter and<br>
+                mastered the ancient words
+            </p>
+            
+            <div style="display:flex; justify-content:center; gap:60px; margin:30px 0; font-family:'Rajdhani', sans-serif;">
+                <div style="text-align:center;">
+                    <div style="font-size:36px; color:#fbbf24; margin-bottom:10px;">⭐</div>
+                    <div style="font-size:22px; color:#94a3b8;">XP Earned</div>
+                    <div id="certXP" style="font-size:40px; font-weight:bold; color:#fbbf24;">0</div>
+                </div>
+                <div style="width:3px; background:rgba(251, 191, 36, 0.3);"></div>
+                <div style="text-align:center;">
+                    <div style="font-size:36px; color:#ef4444; margin-bottom:10px;">🔥</div>
+                    <div style="font-size:22px; color:#94a3b8;">Best Streak</div>
+                    <div id="certStreak" style="font-size:40px; font-weight:bold; color:#ef4444;">0</div>
+                </div>
+            </div>
+            
+            <div style="margin-top:20px; padding-top:20px; border-top:2px solid rgba(251, 191, 36, 0.2);">
+                <div style="font-size:22px; color:#94a3b8;">Item Won</div>
+                <div style="font-size:28px; color:#fbbf24; font-weight:bold; margin-top:10px;">Composition Quill.png ✍️</div>
+            </div>
         </div>
-        <div style="margin-top:20px; font-size:14px; color:#94a3b8;">Dungeon Speller Challenge</div>
+        
+        <div style="margin-top:30px; border-top:2px solid rgba(251, 191, 36, 0.2); padding-top:20px;">
+            <div style="color:#94a3b8; font-size:18px;">⚔️ Dungeon Speller Challenge ⚔️</div>
+            <div style="font-size:16px; color:#64748b; margin-top:10px;">
+                Certificate ID: <span style="color:#fbbf24;">DS-<script>document.write(Date.now().toString().slice(-6));</script></span>
+            </div>
+        </div>
     </div>
+    
+    <div style="position:absolute; bottom:0; left:0; width:100%; height:10px; background:#fbbf24;"></div>
 </div>
+
+
 <script>
     /* ═══════════════════════════════════════════════════════════════════════
        PART 2: DATA & CONFIGURATION
@@ -692,7 +867,7 @@ const SUPABASE_URL = "https://syrhuxxryctrzjdzexnx.supabase.co";
 const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
 
 // Initialize Client
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const CONFIG = {
         PLAYER_MAX_HP: 100,
         GHOST_MAX_HP: 100,
@@ -701,11 +876,17 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
         XP_PER_WIN: 5,
         ASSETS: {
             audio: [
-                'dungeon-ambient.mp3', 'ghost-appear.mp3', 'correct-answer.mp3',
-                'wrong-answer.mp3', 'player-hit.mp3', 'ghost-hit.mp3',
-                'victory.mp3', 'defeat.mp3', 'button-click.mp3', 'whoosh.mp3'
+                'button-click.mp3',
+                'correct-answer.mp3',
+                'defeat.mp3',
+                'victory.mp3',
+                'dungeon-ambient.mp3',
+                'fire-crackle.mp3',
+                'ghost-appear.mp3',
+                'ghost-hit.mp3',
+                'player-hit.mp3',
+                'wrong-answer.mp3'
             ],
-            // Images are loaded via CSS background-images usually, but we can verify them here
             images: ['door-closed.png', 'dungeon-corridor.png', 'ghost-main.png']
         }
     };
@@ -863,6 +1044,7 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             "Größe ist nicht wichtig für innere Stärke"
         ]
     };
+    
     /* ═══════════════════════════════════════════════════════════════════════
        PART 3: GAME LOGIC
        ═══════════════════════════════════════════════════════════════════════ */
@@ -886,33 +1068,164 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
         constructor() {
             this.sounds = {};
             this.bgm = null;
+            this.fireSound = null;
             this.isMuted = false;
+            this.hasAudioContext = false;
+            this.audioContext = null;
             this.init();
         }
 
         init() {
-            // Preload sounds
+            this.hasAudioContext = !!(window.AudioContext || window.webkitAudioContext);
+            
+            if (!this.hasAudioContext) {
+                console.warn("AudioContext not supported - using fallback audio");
+            }
+            
+            // Load audio files
+            this.loadAudioFiles();
+            
+            // Initialize audio context on first user interaction
+            this.setupAudioContext();
+        }
+
+        loadAudioFiles() {
             CONFIG.ASSETS.audio.forEach(file => {
-                const audio = new Audio(file);
-                audio.preload = 'auto';
-                this.sounds[file] = audio;
+                try {
+                    const audio = new Audio();
+                    audio.src = file;
+                    audio.preload = 'auto';
+                    audio.load();
+                    this.sounds[file] = audio;
+                } catch (e) {
+                    console.warn(`Failed to load audio: ${file}`, e);
+                }
             });
+        }
+
+        setupAudioContext() {
+            if (!this.hasAudioContext) return;
+            
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.audioContext = new AudioContext();
+                
+                // Resume audio context on user interaction
+                const resumeAudio = () => {
+                    if (this.audioContext && this.audioContext.state === 'suspended') {
+                        this.audioContext.resume().then(() => {
+                            console.log("AudioContext resumed");
+                        });
+                    }
+                };
+                
+                // Add event listeners for all user interactions
+                const events = ['click', 'touchstart', 'keydown', 'mousedown'];
+                events.forEach(event => {
+                    document.addEventListener(event, resumeAudio, { once: true });
+                });
+                
+            } catch (e) {
+                console.warn("Failed to create AudioContext:", e);
+                this.hasAudioContext = false;
+            }
         }
 
         play(filename, loop = false, volume = 1.0) {
             if (this.isMuted) return;
             
-            const sound = this.sounds[filename];
-            if (sound) {
+            try {
+                const sound = this.sounds[filename];
+                if (!sound) {
+                    console.warn(`Audio file not found: ${filename}`);
+                    this.playFallbackSound(filename, volume);
+                    return;
+                }
+                
                 sound.currentTime = 0;
                 sound.loop = loop;
-                sound.volume = volume;
-                // Try-catch to handle autoplay restrictions
-                sound.play().catch(e => console.warn("Audio play blocked:", e));
+                sound.volume = Math.min(volume, 1.0);
                 
-                if (filename.includes('ambient')) this.bgm = sound;
-            } else {
-                console.warn(`Sound missing: ${filename}`);
+                const playPromise = sound.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.catch(e => {
+                        console.warn(`Audio play blocked for ${filename}:`, e.message);
+                        // Retry on next user interaction
+                        const retryPlay = () => {
+                            sound.play().catch(e2 => console.warn("Retry also failed:", e2));
+                            document.removeEventListener('click', retryPlay);
+                            document.removeEventListener('touchstart', retryPlay);
+                        };
+                        document.addEventListener('click', retryPlay);
+                        document.addEventListener('touchstart', retryPlay);
+                    });
+                }
+                
+                if (loop) {
+                    if (filename === 'dungeon-ambient.mp3') {
+                        this.bgm = sound;
+                    } else if (filename === 'fire-crackle.mp3') {
+                        this.fireSound = sound;
+                    }
+                }
+                
+            } catch (e) {
+                console.warn(`Error playing ${filename}:`, e);
+                this.playFallbackSound(filename, volume);
+            }
+        }
+
+        playFallbackSound(filename, volume) {
+            if (!this.hasAudioContext || !this.audioContext) {
+                console.log("Fallback sound for:", filename);
+                return;
+            }
+            
+            try {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                let frequency = 600;
+                let duration = 200;
+                
+                if (filename.includes('correct')) {
+                    frequency = 800;
+                    duration = 300;
+                } else if (filename.includes('wrong')) {
+                    frequency = 400;
+                    duration = 400;
+                } else if (filename.includes('hit')) {
+                    frequency = 300;
+                    duration = 150;
+                } else if (filename.includes('victory')) {
+                    frequency = 1000;
+                    duration = 1000;
+                } else if (filename.includes('defeat')) {
+                    frequency = 200;
+                    duration = 800;
+                } else if (filename.includes('button')) {
+                    frequency = 500;
+                    duration = 100;
+                } else if (filename.includes('ghost')) {
+                    frequency = 700;
+                    duration = 250;
+                }
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = 'sine';
+                gainNode.gain.value = volume * 0.1;
+                
+                oscillator.start();
+                setTimeout(() => {
+                    oscillator.stop();
+                }, duration);
+                
+            } catch (e) {
+                console.log("Simple fallback for:", filename);
             }
         }
 
@@ -920,10 +1233,23 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             if (this.bgm) {
                 this.bgm.pause();
                 this.bgm.currentTime = 0;
+                this.bgm = null;
+            }
+            if (this.fireSound) {
+                this.fireSound.pause();
+                this.fireSound.currentTime = 0;
+                this.fireSound = null;
+            }
+        }
+        
+        enableAudio() {
+            if (this.hasAudioContext && this.audioContext && this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
             }
         }
     }
 
+    // Initialize audio manager
     const audio = new AudioManager();
 
     // --- 3. UI CONTROLLER ---
@@ -937,23 +1263,27 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             this.dropZone = document.getElementById('dropZone');
             this.wordPool = document.getElementById('wordPool');
             this.hitEffect = document.getElementById('hitEffect');
+            this.isMobile = this.detectMobile();
+        }
+        
+        detectMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
         showScreen(id) {
             this.screens.forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            
+            window.scrollTo(0, 0);
         }
 
         updateHUD() {
-            // HP Bars
             this.hpBarPlayer.style.width = `${gameState.playerHP}%`;
             this.hpBarGhost.style.width = `${gameState.ghostHP}%`;
             
-            // Color shift based on HP
             if(gameState.playerHP < 30) this.hpBarPlayer.style.backgroundColor = '#ef4444';
             else this.hpBarPlayer.style.backgroundColor = '#10b981';
 
-            // Text Stats
             document.getElementById('uiPlayerName').textContent = gameState.name;
             document.getElementById('uiXP').textContent = `⭐ ${gameState.xp}`;
             document.getElementById('uiStreak').textContent = `Streak: 🔥 ${gameState.streak}`;
@@ -977,7 +1307,7 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
         typewriter(text, element) {
             element.textContent = '';
             let i = 0;
-            const speed = 30; // ms per char
+            const speed = this.isMobile ? 40 : 30;
             
             function type() {
                 if (i < text.length) {
@@ -996,16 +1326,21 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             document.getElementById('enterBtn').textContent = t.enterButton;
             document.getElementById('submitBtn').textContent = t.submitAnswer;
             
-            // Victory/Defeat text
             document.getElementById('vicTitle').textContent = t.victoryTitle;
             document.getElementById('defTitle').textContent = t.defeatTitle;
             document.getElementById('vicQLabel').textContent = t.labels.q;
             document.getElementById('vicXPLabel').textContent = t.labels.xp;
             document.getElementById('vicStrLabel').textContent = t.labels.str;
             
-            // RTL handling
             if (lang === 'ar') document.body.classList.add('rtl');
             else document.body.classList.remove('rtl');
+        }
+        
+        updateLoadingProgress(message) {
+            const progressEl = document.getElementById('loadingProgress');
+            if (progressEl) {
+                progressEl.textContent = message;
+            }
         }
     }
 
@@ -1014,7 +1349,7 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
     // --- 4. GAME CONTROLLER ---
     class GameController {
         constructor() {
-            this.isQuestionActive = false; // ADDED: Question locking flag
+            this.isQuestionActive = false;
             this.initListeners();
         }
 
@@ -1026,7 +1361,17 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                     e.target.classList.add('selected');
                     gameState.lang = e.target.dataset.lang;
                     uiController.updateTranslations(gameState.lang);
+                    
+                    audio.enableAudio();
                     audio.play('button-click.mp3');
+                });
+                
+                btn.addEventListener('touchstart', () => {
+                    btn.style.transform = 'scale(0.98)';
+                });
+                
+                btn.addEventListener('touchend', () => {
+                    btn.style.transform = '';
                 });
             });
 
@@ -1038,21 +1383,64 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                 gameState.name = e.target.value.trim();
                 enterBtn.disabled = gameState.name.length < 2;
             });
+            
+            nameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !enterBtn.disabled) {
+                    this.startGame();
+                }
+            });
 
             // Enter Game
             enterBtn.addEventListener('click', () => this.startGame());
+            
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('touchstart', () => {
+                    btn.style.transform = 'translateY(1px)';
+                });
+                
+                btn.addEventListener('touchend', () => {
+                    btn.style.transform = '';
+                });
+            });
 
-            // Submit Answer
             document.getElementById('submitBtn').addEventListener('click', () => this.checkAnswer());
             
-            // Remove loading screen after minimal timeout
+            this.initializeGame();
+        }
+        
+        initializeGame() {
+            uiController.updateLoadingProgress("Loading game assets...");
+            
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            if (isIOS) {
+                document.body.style.webkitOverflowScrolling = 'touch';
+            }
+            
             setTimeout(() => {
-                document.getElementById('loadingScreen').classList.remove('active');
-            }, 1500);
+                uiController.updateLoadingProgress("Initializing game engine...");
+                
+                setTimeout(() => {
+                    uiController.updateLoadingProgress("Ready to play!");
+                    
+                    setTimeout(() => {
+                        console.log("Game initialized successfully");
+                        document.getElementById('loadingScreen').classList.remove('active');
+                        uiController.showScreen('menuScreen');
+                        
+                        document.addEventListener('click', () => {
+                            audio.enableAudio();
+                        }, { once: true });
+                        
+                    }, 500);
+                }, 800);
+            }, 500);
         }
 
         startGame() {
-            // Reset Stats
+            audio.enableAudio();
+            
             gameState.playerHP = CONFIG.PLAYER_MAX_HP;
             gameState.ghostHP = CONFIG.GHOST_MAX_HP;
             gameState.xp = 0;
@@ -1060,37 +1448,33 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             gameState.highStreak = 0;
             gameState.questionsAnswered = 0;
             gameState.isGameActive = true;
-            this.isQuestionActive = false; // RESET question lock
+            this.isQuestionActive = false;
 
-            // --- KEY CHANGE: Load the full 20 questions into the pool ---
             this.questionPool = [...QUESTIONS_DB[gameState.lang]];
 
             audio.play('button-click.mp3');
-            audio.play('whoosh.mp3');
-            audio.play('dungeon-ambient.mp3', true, 0.5); 
+            audio.play('dungeon-ambient.mp3', true, 0.3);
+            audio.play('fire-crackle.mp3', true, 0.2);
 
             uiController.updateHUD();
             uiController.showScreen('gameScreen');
             
-            this.loadNextQuestion();
+            setTimeout(() => {
+                this.loadNextQuestion();
+            }, 100);
         }
 
         loadNextQuestion() {
             if (!gameState.isGameActive) return;
 
-            this.isQuestionActive = true; // SET question as active
+            this.isQuestionActive = true;
             
-            // 1. Safety Check: If the player played SO poorly they used all 20 questions
-            // but the ghost is still alive (rare), we refill the pool.
             if (this.questionPool.length === 0) {
                 this.questionPool = [...QUESTIONS_DB[gameState.lang]];
             }
 
-            // 2. Pick a random question from the pool
             const randomIndex = Math.floor(Math.random() * this.questionPool.length);
             const rawSentence = this.questionPool[randomIndex];
-
-            // 3. REMOVE it from the pool immediately so it cannot repeat
             this.questionPool.splice(randomIndex, 1);
 
             gameState.currentQ = {
@@ -1098,7 +1482,6 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                 words: rawSentence.split(' ')
             };
 
-            // (Rest of the visual logic remains the same)
             const ghosts = TRANSLATIONS[gameState.lang].ghost;
             const randomLine = ghosts[Math.floor(Math.random() * ghosts.length)];
             uiController.typewriter(randomLine, document.getElementById('ghostText'));
@@ -1114,47 +1497,61 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
 
             setTimeout(() => {
                 preview.style.opacity = '0';
-                audio.play('whoosh.mp3');
                 this.renderTiles(gameState.currentQ.words);
             }, 3000);
         }
 
         renderTiles(words) {
-            // Shuffle copy of words
+            uiController.wordPool.innerHTML = '';
+            
             const shuffled = [...words].sort(() => Math.random() - 0.5);
             
             shuffled.forEach(word => {
                 const tile = document.createElement('div');
                 tile.className = 'word-tile';
                 tile.textContent = word;
+                tile.dataset.word = word;
                 
-                // Click to move logic
-                tile.addEventListener('click', () => {
-                    if (!this.isQuestionActive) return; // PREVENT clicks when question inactive
+                const handleTileClick = () => {
+                    if (!this.isQuestionActive) return;
+                    
                     audio.play('button-click.mp3');
+                    
                     if (tile.parentElement.id === 'wordPool') {
                         uiController.dropZone.appendChild(tile);
                     } else {
                         uiController.wordPool.appendChild(tile);
                     }
-                    // Enable submit if drop zone has words
+                    
                     document.getElementById('submitBtn').disabled = uiController.dropZone.children.length === 0;
+                };
+                
+                tile.addEventListener('click', handleTileClick);
+                tile.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    handleTileClick();
                 });
-
+                
                 uiController.wordPool.appendChild(tile);
             });
         }
 
         checkAnswer() {
-            if (!this.isQuestionActive) return; // PREVENT multiple submissions
+            if (!this.isQuestionActive) return;
             
             const userWords = Array.from(uiController.dropZone.children).map(tile => tile.textContent);
             const userSentence = userWords.join(' ');
             
-            // Compare (simple normalization)
             const isCorrect = userSentence.trim() === gameState.currentQ.original.trim();
 
-            this.isQuestionActive = false; // LOCK question immediately
+            this.isQuestionActive = false;
+            
+            document.querySelectorAll('.word-tile').forEach(tile => {
+                tile.classList.add('disabled');
+                tile.style.pointerEvents = 'none';
+            });
+            
+            document.getElementById('submitBtn').disabled = true;
 
             if (isCorrect) {
                 this.handleCorrect();
@@ -1162,34 +1559,21 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                 this.handleWrong();
             }
 
-            // Check Win/Loss conditions
             if (gameState.ghostHP <= 0) {
                 this.endGame(true);
             } else if (gameState.playerHP <= 0) {
                 this.endGame(false);
             } else {
-                // Next question delay
                 setTimeout(() => this.loadNextQuestion(), 2000);
             }
         }
 
         handleCorrect() {
-            this.isQuestionActive = false; // ENSURE lock
-            
-            // Disable all word tiles
-            document.querySelectorAll('.word-tile').forEach(tile => {
-                tile.style.pointerEvents = 'none';
-                tile.style.opacity = '0.5';
-            });
-            
-            // Disable submit button
-            document.getElementById('submitBtn').disabled = true;
-            
             audio.play('correct-answer.mp3');
             audio.play('ghost-hit.mp3');
             
             uiController.showHitEffect();
-            document.getElementById('ghostChar').classList.add('shake-anim'); // Ghost hit anim
+            document.getElementById('ghostChar').classList.add('shake-anim');
             setTimeout(() => document.getElementById('ghostChar').classList.remove('shake-anim'), 400);
 
             gameState.ghostHP = Math.max(0, gameState.ghostHP - CONFIG.DAMAGE_GHOST);
@@ -1202,17 +1586,6 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
         }
 
         handleWrong() {
-            this.isQuestionActive = false; // ENSURE lock
-            
-            // Disable all word tiles
-            document.querySelectorAll('.word-tile').forEach(tile => {
-                tile.style.pointerEvents = 'none';
-                tile.style.opacity = '0.5';
-            });
-            
-            // Disable submit button
-            document.getElementById('submitBtn').disabled = true;
-            
             audio.play('wrong-answer.mp3');
             audio.play('player-hit.mp3');
             
@@ -1226,10 +1599,9 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
 
         endGame(isVictory) {
             gameState.isGameActive = false;
-            this.isQuestionActive = false; // ENSURE final lock
+            this.isQuestionActive = false;
             audio.stopBGM();
             
-            // Update End Screen Stats
             const prefix = isVictory ? 'vic' : 'def';
             const t = TRANSLATIONS[gameState.lang];
             
@@ -1252,34 +1624,39 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             btn.textContent = "⏳ Uploading...";
             btn.disabled = true;
 
-            // 1. Fill Certificate Data
             document.getElementById('certName').textContent = gameState.name;
             document.getElementById('certXP').textContent = gameState.xp;
             document.getElementById('certStreak').textContent = gameState.highStreak;
 
             try {
-                // 2. Generate Image with CORS-safe configuration
                 const canvas = await html2canvas(document.getElementById('certificateNode'), {
                     useCORS: true,
                     allowTaint: false,
                     backgroundColor: null,
-                    scale: 2,
-                    logging: false
+                    scale: uiController.isMobile ? 1 : 1.5,
+                    logging: false,
+                    onclone: (clonedDoc) => {
+                        const style = clonedDoc.createElement('style');
+                        style.textContent = `
+                            @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Philosopher:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
+                        `;
+                        clonedDoc.head.appendChild(style);
+                    }
                 });
                 
                 canvas.toBlob(async (blob) => {
                     if (!blob) throw new Error("Image generation failed");
 
-                    // 3. Define Filename
                     const timestamp = Date.now();
                     const filename = `cert_${gameState.name.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.png`;
 
                     let imageUrl = "";
                     let dbSuccess = false;
+                    let errorMessage = "";
                     
                     try {
-                        // 4. Upload to Supabase Storage
-                        console.log("Uploading to Supabase storage...", filename, blob.size);
+                        console.log("Starting Supabase upload process...");
+                        
                         const { data: uploadData, error: uploadError } = await supabase
                             .storage
                             .from('certificates')
@@ -1289,28 +1666,20 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                             });
 
                         if (uploadError) {
-                            console.error("Storage upload error:", uploadError);
-                            throw new Error(`Storage upload failed: ${uploadError.message}`);
+                            console.error("❌ Storage upload error:", uploadError);
+                            errorMessage = `Storage upload failed: ${uploadError.message}`;
+                            throw new Error(errorMessage);
                         }
 
-                        console.log("Storage upload success:", uploadData);
+                        console.log("✅ Storage upload successful:", uploadData);
 
-                        // 5. Get Public URL
                         const { data: publicUrlData } = supabase
                             .storage
                             .from('certificates')
                             .getPublicUrl(filename);
                         
                         imageUrl = publicUrlData.publicUrl;
-                        console.log("Public URL:", imageUrl);
-
-                        // 6. Save to Database with better error handling
-                        console.log("Saving to database...", {
-                            player_name: gameState.name,
-                            xp: gameState.xp,
-                            streak: gameState.highStreak,
-                            image_url: imageUrl
-                        });
+                        console.log("✅ Public URL obtained:", imageUrl);
 
                         const { data: dbData, error: dbError } = await supabase
                             .from('leaderboard')
@@ -1321,13 +1690,12 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                                 image_url: imageUrl,
                                 created_at: new Date().toISOString()
                             }])
-                            .select(); // Add .select() to get response
+                            .select();
 
                         if (dbError) {
-                            console.error("Database insert error:", dbError);
-                            console.log("Trying alternative table name...");
+                            console.error("❌ Database insert error:", dbError);
+                            errorMessage = `Database insert failed: ${dbError.message}`;
                             
-                            // Try alternative table names
                             const { error: altError } = await supabase
                                 .from('scores')
                                 .insert([{ 
@@ -1339,21 +1707,20 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                                 }]);
                             
                             if (altError) {
-                                console.error("Alternative table also failed:", altError);
-                                throw new Error(`Database insert failed: ${dbError.message}`);
+                                console.error("❌ Alternative table also failed:", altError);
+                                throw new Error(errorMessage);
                             }
                             
-                            console.log("Saved to alternative 'scores' table");
+                            console.log("✅ Saved to alternative 'scores' table");
                             dbSuccess = true;
                         } else {
-                            console.log("Database insert success:", dbData);
+                            console.log("✅ Database insert success:", dbData);
                             dbSuccess = true;
                         }
 
                     } catch (storageError) {
-                        console.warn("Supabase storage failed, falling back to localStorage:", storageError);
+                        console.warn("⚠️ Supabase storage failed, falling back to localStorage:", storageError);
                         
-                        // Fallback: Save to localStorage
                         const localData = {
                             player_name: gameState.name,
                             xp: gameState.xp,
@@ -1361,28 +1728,27 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                             timestamp: Date.now()
                         };
                         
-                        // Convert blob to data URL for localStorage
                         const reader = new FileReader();
                         reader.onloadend = function() {
                             localData.certificate = reader.result;
                             const saves = JSON.parse(localStorage.getItem('dungeonSpellerSaves') || '[]');
                             saves.push(localData);
                             localStorage.setItem('dungeonSpellerSaves', JSON.stringify(saves));
-                            console.log("Saved locally:", localData);
+                            console.log("✅ Saved locally:", localData);
                         };
                         reader.readAsDataURL(blob);
                         
                         dbSuccess = true;
                         imageUrl = "Saved locally";
+                        errorMessage = storageError.message;
                     }
 
-                    // 7. Show success message
                     if (dbSuccess) {
                         btn.textContent = "✅ Saved!";
-                        alert(`Game results saved successfully!\n\nPlayer: ${gameState.name}\nXP: ${gameState.xp}\nBest Streak: ${gameState.highStreak}\n\nCheck console for details.`);
+                        alert(`Game results saved successfully!\n\nPlayer: ${gameState.name}\nXP: ${gameState.xp}\nBest Streak: ${gameState.highStreak}\n\n${imageUrl}`);
                     } else {
                         btn.textContent = "⚠️ Partial Save";
-                        alert("Results saved locally but cloud sync failed.");
+                        alert("Results saved locally but cloud sync failed.\n\nError: " + errorMessage);
                     }
                     
                     setTimeout(() => {
@@ -1390,11 +1756,11 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
                         btn.textContent = originalText;
                     }, 3000);
 
-                }, 'image/png', 0.95);
+                }, 'image/png', 0.9);
 
             } catch (err) {
-                console.error("Critical error in shareToWhatsApp:", err);
-                alert("Error: " + err.message + "\n\nCheck browser console for details.");
+                console.error("❌ Critical error in shareToWhatsApp:", err);
+                alert("Error saving results: " + err.message + "\n\nCheck browser console (F12) for details.");
                 btn.textContent = "❌ Error";
                 btn.disabled = false;
             }
@@ -1404,8 +1770,34 @@ const SUPABASE_KEY = "sb_publishable_f26IxnkhOy0ckfJ7hFHCrA_NcSnN0Al";
             this.startGame();
         }
     }
+    
     // --- 5. STARTUP ---
-    const gameController = new GameController();
+    if (!window.gameController) {
+        window.gameController = new GameController();
+    }
+    
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                document.body.style.overflow = '';
+            }, 50);
+        }, 250);
+    });
+    
+    document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+    
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            window.scrollTo(0, 0);
+        }, 100);
+    });
 </script>
 </body>
 </html>
