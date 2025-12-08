@@ -112,7 +112,7 @@
     }
 
     /* Hide video on very small screens to save performance */
-    @media (max-width: 240px) {
+    @media (max-width: 480px) {
         .bg-video {
             display: none;
         }
@@ -210,7 +210,7 @@
 
     .lang-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
         margin-bottom: 25px;
     }
@@ -262,26 +262,10 @@
 
     /* --- GAME ARENA --- */
     #gameScreen {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100vh;
-    overflow: hidden;
-}
-
-.hud-top {
-    flex-shrink: 0;
-}
-
-.arena-center {
-    flex-grow: 1;
-    flex-shrink: 0;
-}
-
-.interaction-area {
-    flex-shrink: 0;
-}
-
+        background-image: url('dungeon-corridor.png');
+        justify-content: space-between;
+        padding: 15px 0;
+    }
 
     .hud-top {
         width: 100%;
@@ -308,13 +292,13 @@
         justify-content: space-between;
         font-family: var(--font-ui);
         font-weight: 700;
-        font-size: clamp(0.6rem, 3vw, 1.3rem);
-        margin-bottom: 3px;
+        font-size: clamp(1.1rem, 3vw, 1.3rem);
+        margin-bottom: 8px;
     }
 
     .hp-container {
         width: 100%;
-        height: 5px;
+        height: 15px;
         background: #334155;
         border-radius: 6px;
         overflow: hidden;
@@ -351,7 +335,7 @@
         align-items: center;
         position: relative;
         width: 100%;
-        padding: 10px;
+        padding: 15px;
     }
 
     .ghost-sprite {
@@ -387,15 +371,15 @@
         transform: translate(-50%, 0);
         width: min(550px, 90%);
         min-height: 25px;
-        background: rgba(0, 0, 0, 0.2);
-        border: 0px solid #fbbf24;
+        background: rgba(0, 0, 0, 0.85);
+        border: 2px solid #fbbf24;
         border-radius: 15px;
         box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 20;
-        padding: 2px;
+        padding: 8px;
     }
 
     #ghostText {
@@ -539,20 +523,6 @@
         color: var(--gold); 
     }
 
-    /* Item image styling */
-    .item-image {
-        width: 120px;
-        height: 120px;
-        margin: 15px auto;
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        border: 3px solid var(--gold);
-        border-radius: 10px;
-        box-shadow: 0 0 20px var(--gold-glow);
-        background-color: rgba(0, 0, 0, 0.3);
-    }
-
     /* --- RTL SUPPORT --- */
     body.rtl { direction: rtl; font-family: var(--font-arabic); }
     body.rtl h1 { letter-spacing: 0; }
@@ -579,258 +549,114 @@
     .damage-anim { animation: damage-flash 0.2s; }
     .ghost-idle { animation: float 3s ease-in-out infinite; }
 
-/* --- RESPONSIVE --- */
-
-/* Tablet and smaller devices */
-@media (max-width: 768px) {
-    .hud-top {
-        flex-direction: column;
-        gap: 10px;
-        align-items: stretch;
-        padding: 10px 15px;
-        flex-shrink: 0;
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+        .hud-top {
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+        }
+        
+        .player-panel, .ghost-panel {
+            min-width: 100%;
+            padding: 12px 15px;
+        }
+        
+        .ghost-sprite {
+            width: min(280px, 75vw);
+            height: min(330px, 85vw);
+            margin-top: 25px;
+        }
+        
+        .dialogue-box {
+            top: 15%;
+            width: 90%;
+            padding: 5px;
+        }
+        
+        #ghostText {
+            font-size: 1.1rem;
+            line-height: 1.3;
+            padding: 8px;
+        }
+        
+        .word-tile {
+            padding: 10px 15px;
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .btn {
+            min-width: 140px;
+            padding: 12px 25px;
+        }
+        
+        .torch-overlay {
+            display: none;
+        }
     }
     
-    .player-panel, .ghost-panel {
-        min-width: 100%;
-        padding: 3px 5px;
-        flex-shrink: 0;
+    @media (max-width: 480px) {
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .menu-panel {
+            padding: 20px;
+        }
+        
+        .lang-btn {
+            padding: 12px;
+            font-size: 1rem;
+        }
+        
+        .ghost-sprite {
+            width: 200px;
+            height: 240px;
+        }
+        
+        .drop-zone, .word-pool {
+            gap: 6px;
+            padding: 8px;
+        }
+        
+        .word-tile {
+            padding: 8px 12px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            min-width: 130px;
+            padding: 10px 20px;
+            font-size: 1.1rem;
+        }
     }
     
-    .arena-center {
-        min-height: 40vh;
-        max-height: 40vh;
-        padding: 5px;
-        justify-content: flex-start;
-        margin-top: 10px;
-    }
-    
-    .ghost-sprite {
-        width: min(200px, 60vw);
-        height: min(250px, 70vw);
-        margin-top: 10px;
-        flex-shrink: 0;
-    }
-    
-    .dialogue-box {
-        top: 40%;
-        width: 85%;
-        padding: 5px;
-        min-height: 20px;
-        transform: translate(-50%, -50%);
-        position: absolute;
-    }
-    
-    #ghostText {
-        font-size: 1rem;
-        line-height: 1.2;
-        padding: 5px 8px;
-    }
-    
+    @media (orientation: landscape) and (max-height: 600px) {
+        .ghost-sprite {
+            width: 170px;
+            height: 200px;
+        }
+        
+        .dialogue-box {
+            top: 10%;
+        }
+        
         .interaction-area {
-        padding: 10px 15px;  /* Adjusts vertical padding on mobile */
-        min-height: 40vh;    /* Controls minimum height */
-        max-height: 50vh;    /* Controls maximum height */
-    }
-    
-    .drop-zone, .word-pool {
-        min-height: 50px;    /* Reduced height on mobile */
-        max-height: 100px;   /* Limits height to prevent overflow */
-    }
-}
-
-@media (max-width: 480px) {
-    .interaction-area {
-        padding: 8px 12px;   /* Even smaller padding on phones */
-        min-height: 45vh;    /* Adjusts vertical space allocation */
-    }
-}
-
-@media (orientation: landscape) and (max-height: 600px) {
-    .interaction-area {
-        min-height: 35vh;    /* Reduced height in landscape */
-        max-height: 40vh;    /* Limits height in landscape */
-        padding: 5px 10px;   /* Reduced padding */
+            padding: 8px;
+        }
+        
+        .sentence-preview {
+            top: 60%;
+            font-size: 1.8rem;
+        }
     }
 
-    
-    .sentence-preview {
-        top: 50%;
-        font-size: 1.2rem;
-        margin-bottom: 10px;
-        position: relative;
-        transform: translateX(-50%);
-    }
-    
-    .drop-zone, .word-pool {
-        min-height: 50px;
-        max-height: 100px;
-        overflow-y: auto;
-        gap: 6px;
-        padding: 8px;
-    }
-    
-    .word-tile {
-        padding: 8px 12px;
-        font-size: 1rem;
-        min-height: 40px;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-    
-    .btn {
-        min-width: 140px;
-        padding: 12px 25px;
-        margin: 8px;
-    }
-    
-    .torch-overlay {
-        display: none;
-    }
-    
-    .item-image {
-        width: 100px;
-        height: 100px;
-    }
-}
-
-/* Small phones */
-@media (max-width: 480px) {
-    h1 {
-        font-size: 2rem;
-        margin-bottom: 0.8rem;
-    }
-    
-    .menu-panel {
-        padding: 15px;
-    }
-    
-    .lang-btn {
-        padding: 10px;
-        font-size: 0.9rem;
-        min-height: 45px;
-    }
-    
-    .arena-center {
-        min-height: 35vh;
-        max-height: 35vh;
-    }
-    
-    .ghost-sprite {
-        width: 150px;
-        height: 180px;
-        margin-top: 5px;
-    }
-    
-    .dialogue-box {
-        top: 35%;
-        width: 90%;
-        padding: 4px;
-    }
-    
-    #ghostText {
-        font-size: 0.9rem;
-        padding: 4px 6px;
-    }
-    
-    .interaction-area {
-        padding: 8px 12px;
-        min-height: 45vh;
-        gap: 8px;
-    }
-    
-    .sentence-preview {
-        font-size: 1.1rem;
-        margin-bottom: 8px;
-    }
-    
-    .drop-zone, .word-pool {
-        min-height: 40px;
-        max-height: 80px;
-        gap: 4px;
-        padding: 6px;
-    }
-    
-    .word-tile {
-        padding: 6px 10px;
-        font-size: 0.9rem;
-        min-height: 35px;
-    }
-    
-    .btn {
-        min-width: 120px;
-        padding: 10px 20px;
-        font-size: 1rem;
-        margin: 6px;
-    }
-    
-    .item-image {
-        width: 80px;
-        height: 80px;
-    }
-}
-
-/* Landscape mode on mobile */
-@media (orientation: landscape) and (max-height: 600px) {
-    .hud-top {
-        padding: 5px 10px;
-        flex-direction: row;
-        gap: 5px;
-    }
-    
-    .arena-center {
-        min-height: 30vh;
-        max-height: 30vh;
-        padding: 0;
-        margin-top: 0;
-    }
-    
-    .ghost-sprite {
-        width: 120px;
-        height: 140px;
-        margin-top: 0;
-    }
-    
-    .dialogue-box {
-        top: 25%;
-        width: 80%;
-        padding: 3px;
-    }
-    
-    .interaction-area {
-        min-height: 35vh;
-        max-height: 40vh;
-        padding: 5px 10px;
-        gap: 5px;
-    }
-    
-    .sentence-preview {
-        top: 40%;
-        font-size: 1rem;
-        margin-bottom: 5px;
-    }
-    
-    .drop-zone, .word-pool {
-        min-height: 35px;
-        max-height: 60px;
-        gap: 3px;
-        padding: 4px;
-    }
-    
-    .word-tile {
-        padding: 5px 8px;
-        font-size: 0.8rem;
-        min-height: 30px;
-    }
-    
-    #ghostText {
-        font-size: 0.8rem;
-        padding: 3px 5px;
-    }
-}
     /* Prevent text size adjustment on iOS */
     @media screen and (max-device-width: 480px) {
         body {
@@ -866,7 +692,7 @@
         
         <div class="lang-grid">
             <div class="lang-btn selected" data-lang="en">🌍 English</div>
-            
+            <div class="lang-btn" data-lang="ar">🌍 العربية</div>
             <div class="lang-btn" data-lang="fr">🌍 Français</div>
             <div class="lang-btn" data-lang="de">🌍 Deutsch</div>
         </div>
@@ -950,9 +776,7 @@
             </div>
         </div>
 
-        <p id="itemLabel" style="color:var(--gold); margin-bottom:15px; font-size:1.2rem;">Item Acquired:</p>
-        <div class="item-image" style="background-image: url('Composition Quill.png');"></div>
-        <p style="color:white; margin-bottom:25px; font-size:1.3rem;">Composition Quill ✍️</p>
+        <p id="itemLabel" style="color:var(--gold); margin-bottom:25px;">Item Acquired: <span style="color:white;">Composition Quill.png ✍️</span></p>
         <button class="btn" style="background:#25D366; border-color:#128C7E;" onclick="gameController.shareToWhatsApp(event)">
             📱 Save & Share
         </button>
@@ -985,171 +809,52 @@
     <p id="loadingProgress" style="color:var(--text-dim); margin-top:8px; font-size:1.1rem;">Initializing...</p>
 </div>
 
-<!-- DUNGEON SPELLER CERTIFICATE (HIDDEN) -->
-<div id="certificateNode"
-    style="
-        position:fixed;
-        left:-9999px;
-        top:-9999px;
-        width:900px;
-        height:650px;
-        padding:40px;
-        background:#f5e6c8;
-        border:16px double #3a1f1f;
-        border-radius:25px;
-        box-shadow:0 0 35px rgba(0,0,0,0.55);
-        text-align:center;
-        font-family:'Georgia', serif;
-        color:#3a2415;
-        z-index:9999;
-        background-image:
-            radial-gradient(circle at 50% 50%, #fff7e2, #eed5a3);
-    ">
-
-    <!-- 🔮 Ornamental Corners -->
-    <div style="position:absolute; top:18px; left:18px; font-size:36px; color:#6b3f76;">❦</div>
-    <div style="position:absolute; top:18px; right:18px; font-size:36px; color:#6b3f76;">❧</div>
-    <div style="position:absolute; bottom:18px; left:18px; font-size:36px; color:#6b3f76;">❧</div>
-    <div style="position:absolute; bottom:18px; right:18px; font-size:36px; color:#6b3f76;">❦</div>
-
-    <!-- Decorative Upper Strip -->
-    <div style="
-        width:100%;
-        height:12px;
-        background:#c69d57;
-        border-bottom:3px solid #4a2a2a;
-        margin-bottom:20px;
-    "></div>
-
-    <!-- 🔮 Header Icons -->
-    <div style="
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        gap:45px;
-        font-size:62px;
-        margin-top:0px;
-        margin-bottom:-10px;
-    ">
-        <div>👻</div>
-        <div>📘✨</div>
-        <div>💀🪽</div>
-        <div>🧪</div>
-    </div>
-
-    <!-- TITLE -->
-    <h1 style="
-        font-size:56px;
-        margin-top:0px;
-        letter-spacing:5px;
-        text-shadow:0 2px 4px rgba(0,0,0,0.4);
-        color:#3e1f1f;
-    ">DUNGEON SPELLER</h1>
-
-    <h2 style="
-        font-size:28px;
-        letter-spacing:4px;
-        margin-top:-5px;
-        color:#5a3a19;
-    ">ARCANE ACHIEVEMENT SCROLL</h2>
-
-    <!-- Lore Text -->
-    <p style="
-        width:75%;
-        margin:auto;
-        margin-top:15px;
-        font-size:20px;
-        color:#5a3a19;
-        line-height:1.4;
-    ">
-        This enchanted scroll certifies that the spellcaster below has  
-        skillfully arranged the sacred words and defeated the dreaded  
-        <b>Spelling Specter</b> within the Dungeon of Lost Sentences.
-    </p>
-
-    <!-- ✨ NAME – Centered -->
-    <div style="margin-top:30px;">
-        <div style="font-size:20px; letter-spacing:3px;">SPELLCASTER NAME</div>
-        <div id="certName"
-            style="
-                font-size:44px;
-                font-weight:bold;
-                padding:15px 0;
-                width:60%;
-                margin:auto;
-                border-bottom:4px solid #7a4f2f;
-                color:#3e1f1f;
-            ">
-            Mage Name
-        </div>
-    </div>
-
-    <!-- ✨ XP + STREAK SIDE BY SIDE -->
-    <div style="
-        margin-top:20px;
-        display:flex;
-        justify-content:center;
-        gap:120px;
-        text-align:center;
-    ">
-        <!-- XP -->
-        <div>
-            <div style="font-size:20px; letter-spacing:3px;">XP</div>
-            <div id="certXP"
-                style="
-                    font-size:40px;
-                    font-weight:bold;
-                    padding:5px 0;
-                    width:150px;
-                    margin:auto;
-                    border-bottom:4px solid #7a4f2f;
-                ">
-                150
+<!-- CERTIFICATE (HIDDEN) -->
+<div id="certificateNode" style="position:fixed; left:-9999px; top:-9999px; width:800px; height:600px; background:#1a1a2e; border:10px solid #fbbf24; padding:40px; text-align:center; font-family:'Cinzel', serif; color:white; z-index:9999;">
+    <div style="position:absolute; top:0; left:0; width:100%; height:10px; background:#fbbf24;"></div>
+    <div style="position:absolute; top:10px; left:50%; transform:translateX(-50%); width:80px; height:80px; background:#1a1a2e; border-radius:50%; border:6px solid #fbbf24; display:flex; align-items:center; justify-content:center; font-size:40px;">🏆</div>
+    
+    <div style="margin-top:60px;">
+        <h1 style="color:#fbbf24; font-size:48px; margin-bottom:30px; text-shadow:0 2px 8px rgba(0,0,0,0.8);">DUNGEON CONQUERED</h1>
+        
+        <div style="margin:30px 0; padding:30px; border:3px solid rgba(251, 191, 36, 0.3); border-radius:15px; background:rgba(0,0,0,0.3);">
+            <p style="font-family:'Philosopher', serif; font-size:28px; margin:15px 0; color:#cbd5e1;">This certifies that</p>
+            <h2 id="certName" style="font-size:56px; color:#10b981; margin:20px 0; text-shadow:0 0 20px rgba(16, 185, 129, 0.5); padding:15px; border-bottom:3px solid rgba(251, 191, 36, 0.5);">HERO NAME</h2>
+            <p style="font-family:'Philosopher', serif; font-size:24px; margin:25px 0; line-height:1.5; color:#e2e8f0;">
+                Has bravely cleansed the dungeon<br>
+                of the Spelling Specter and<br>
+                mastered the ancient words
+            </p>
+            
+            <div style="display:flex; justify-content:center; gap:60px; margin:30px 0; font-family:'Rajdhani', sans-serif;">
+                <div style="text-align:center;">
+                    <div style="font-size:36px; color:#fbbf24; margin-bottom:10px;">⭐</div>
+                    <div style="font-size:22px; color:#94a3b8;">XP Earned</div>
+                    <div id="certXP" style="font-size:40px; font-weight:bold; color:#fbbf24;">0</div>
+                </div>
+                <div style="width:3px; background:rgba(251, 191, 36, 0.3);"></div>
+                <div style="text-align:center;">
+                    <div style="font-size:36px; color:#ef4444; margin-bottom:10px;">🔥</div>
+                    <div style="font-size:22px; color:#94a3b8;">Best Streak</div>
+                    <div id="certStreak" style="font-size:40px; font-weight:bold; color:#ef4444;">0</div>
+                </div>
+            </div>
+            
+            <div style="margin-top:20px; padding-top:20px; border-top:2px solid rgba(251, 191, 36, 0.2);">
+                <div style="font-size:22px; color:#94a3b8;">Item Won</div>
+                <div style="font-size:28px; color:#fbbf24; font-weight:bold; margin-top:10px;">Composition Quill.png ✍️</div>
             </div>
         </div>
-
-        <!-- STREAK -->
-        <div>
-            <div style="font-size:20px; letter-spacing:3px;">STREAK</div>
-            <div id="certStreak"
-                style="
-                    font-size:40px;
-                    font-weight:bold;
-                    padding:5px 0;
-                    width:150px;
-                    margin:auto;
-                    border-bottom:4px solid #7a4f2f;
-                ">
-                12
+        
+        <div style="margin-top:30px; border-top:2px solid rgba(251, 191, 36, 0.2); padding-top:20px;">
+            <div style="color:#94a3b8; font-size:18px;">⚔️ Dungeon Speller Challenge ⚔️</div>
+            <div style="font-size:16px; color:#64748b; margin-top:10px;">
+                Certificate ID: <span style="color:#fbbf24;">DS-<script>document.write(Date.now().toString().slice(-6));</script></span>
             </div>
         </div>
     </div>
-
-    <!-- 🧙 Bottom Icons -->
-    <div style="
-        margin-top:50px;
-        display:flex;
-        justify-content:center;
-        gap:70px;
-        font-size:60px;
-        color:#3e1f1f;
-    ">
-        <div>🪄</div>
-        <div>🐉</div>
-        <div>🕯️</div>
-        <div>📜</div>
-        <div>🧭</div>
-    </div>
-
-    <!-- Decorative Lower Strip -->
-    <div style="
-        width:100%;
-        height:12px;
-        background:#c69d57;
-        border-top:3px solid #4a2a2a;
-        margin-top:25px;
-    "></div>
-
+    
+    <div style="position:absolute; bottom:0; left:0; width:100%; height:10px; background:#fbbf24;"></div>
 </div>
 
 
@@ -1232,7 +937,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             submitAnswer: "Lancer le sort",
             victoryTitle: "VICTOIRE !",
             defeatTitle: "DÉFAITE",
-            labels: { q: "Questions", xp: "XP Gagné", str: "Meilleure Série", item: "Item:" },
+            labels: { q: "Questions", xp: "XP Gagné", str: "Meilleure Série", item: "Objet:" },
             msg: { win: "Vous avez vaincu le Spectre !", loss: "Les mots du Spectre étaient trop puissants..." },
             ghost: ["Oses-tu entrer dans mon domaine ?", "Arrange mes mots ou fais face au destin !"]
         },
@@ -1249,96 +954,96 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
     };
 
-    javascript const QUESTIONS_DB = {
-    en: [
-        "I give you the book",
-        "She gives him a coffee",
-        "Can you show me the way",
-        "The teacher shows the children a picture",
-        "I send my mother a message",
-        "Can you send it to me",
-        "The doctor explains the tablets to the woman",
-        "Can you explain that to me",
-        "Give it to me please",
-        "She gives it back to him",
-        "The waiter brings the food to the guests",
-        "Bring me a bottle of water",
-        "I lend my car to my friend",
-        "Can I lend it to you",
-        "I buy my sister a gift",
-        "He buys his son a ball",
-        "My grandma tells us a story",
-        "He tells me everything",
-        "I send you the photos later",
-        "Can you give her the key"
-    ],
-    ar: [
-        "أعطيك الكتاب",
-        "تعطيه قهوة",
-        "هل يمكنك أن تريني الطريق",
-        "المعلم يُري الأطفال صورة",
-        "أرسل لأمي رسالة",
-        "هل يمكنك إرسالها لي",
-        "الطبيب يشرح للمرأة الأقراص",
-        "هل يمكنك شرح ذلك لي",
-        "أعطني إياه من فضلك",
-        "تعيده له",
-        "النادل يحضر للضيوف الطعام",
-        "أحضر لي زجاجة ماء",
-        "أُعير صديقي سيارتي",
-        "هل يمكنني إعارتها لك",
-        "أشتري لأختي هدية",
-        "يشتري لابنه كرة",
-        "جدتي تحكي لنا قصة",
-        "يخبرني بكل شيء",
-        "أرسل لك الصور لاحقاً",
-        "هل يمكنك إعطاءها المفتاح"
-    ],
-    fr: [
-        "Je te donne le livre",
-        "Elle lui donne un café",
-        "Peux-tu me montrer le chemin",
-        "Le professeur montre une image aux enfants",
-        "J'envoie un message à ma mère",
-        "Peux-tu me l'envoyer",
-        "Le médecin explique les comprimés à la femme",
-        "Peux-tu m'expliquer cela",
-        "Donne-le-moi s'il te plaît",
-        "Elle le lui rend",
-        "Le serveur apporte la nourriture aux invités",
-        "Apporte-moi une bouteille d'eau",
-        "Je prête ma voiture à mon ami",
-        "Puis-je te la prêter",
-        "J'achète un cadeau à ma sœur",
-        "Il achète un ballon à son fils",
-        "Ma grand-mère nous raconte une histoire",
-        "Il me raconte tout",
-        "Je t'envoie les photos plus tard",
-        "Peux-tu lui donner la clé"
-    ],
-    de: [
-        "Ich gebe dir das Buch",
-        "Sie gibt ihm einen Kaffee",
-        "Kannst du mir den Weg zeigen",
-        "Der Lehrer zeigt den Kindern ein Bild",
-        "Ich schicke meiner Mutter eine Nachricht",
-        "Kannst du mir sie schicken",
-        "Der Arzt erklärt der Frau die Tabletten",
-        "Kannst du mir das erklären",
-        "Gib mir es bitte",
-        "Sie gibt ihm sie zurück",
-        "Der Kellner bringt den Gästen das Essen",
-        "Bring mir eine Flasche Wasser",
-        "Ich leihe meinem Freund mein Auto",
-        "Kann ich dir es leihen",
-        "Ich kaufe meiner Schwester ein Geschenk",
-        "Er kauft seinem Sohn einen Ball",
-        "Meine Oma erzählt uns eine Geschichte",
-        "Er erzählt mir alles",
-        "Ich schicke dir die Fotos später",
-        "Kannst du ihr den Schlüssel geben"
-    ]
-};
+    const QUESTIONS_DB = {
+        en: [
+            "Everyone admired the huge proud ship",
+            "It sailed across the deep blue ocean",
+            "I was just a little digger",
+            "The digger stayed on the sandy shore",
+            "I was always ready to help others",
+            "The ship came close to load cargo",
+            "Suddenly something went wrong near the shore",
+            "The ship got stuck in heavy mud",
+            "The thick mud held the ship fast",
+            "The ship tried hard to move away",
+            "Big machines rushed to help the ship",
+            "None of them could pull it out",
+            "Everyone started to give up hope",
+            "I said that I could help them",
+            "The big machines laughed at me",
+            "I started digging carefully around the ship",
+            "I worked hard to clear the mud",
+            "Finally the path was clear again",
+            "The huge ship floated free at last",
+            "Size does not matter for inner strength"
+        ],
+        ar: [
+            "أعجب الجميع بالسفينة الضخمة الفخورة",
+            "أبحرت عبر المحيط الأزرق العميق",
+            "كنت مجرد حفار صغير",
+            "بقي الحفار على الشاطئ الرملي",
+            "كنت دائماً مستعداً لمساعدة الآخرين",
+            "اقتربت السفينة لتحميل البضائع",
+            "فجأة حدث خطأ ما قرب الشاطئ",
+            "علقت السفينة في الوحل الثقيل",
+            "أمسك الطين السميك بالسفينة بقوة",
+            "حاولت السفينة جاهدة أن تتحرك",
+            "اندفعت الآلات الكبيرة لمساعدة السفينة",
+            "لم يستطع أي منهم سحبها للخارج",
+            "بدأ الجميع يفقدون الأمل",
+            "قلت أنني أستطيع مساعدتهم",
+            "ضحكت الآلات الكبيرة علي",
+            "بدأت الحفر بعناية حول السفينة",
+            "عملت بجد لإزالة الطين",
+            "أخيراً أصبح الطريق واضحاً مرة أخرى",
+            "طفت السفينة الضخمة حرة أخيراً",
+            "الحجم لا يهم للقوة الداخلية"
+        ],
+        fr: [
+            "Tout le monde admirait l'immense navire fier",
+            "Il naviguait à travers l'océan bleu profond",
+            "J'étais juste une petite pelleteuse",
+            "La pelleteuse restait sur le rivage sablonneux",
+            "J'étais toujours prêt à aider les autres",
+            "Le navire s'est approché pour charger la cargaison",
+            "Soudain quelque chose a mal tourné près du rivage",
+            "Le navire s'est coincé dans la boue lourde",
+            "La boue épaisse retenait le navire fermement",
+            "Le navire a essayé fort de bouger",
+            "De grosses machines se sont précipitées pour aider",
+            "Aucune d'elles ne pouvait le sortir",
+            "Tout le monde a commencé à perdre espoir",
+            "J'ai dit que je pouvais les aider",
+            "Les grosses machines se moquaient de moi",
+            "J'ai commencé à creuser soigneusement autour du navire",
+            "J'ai travaillé dur pour dégager la boue",
+            "Finalement le chemin était clair à nouveau",
+            "L'immense navire a flotté libre enfin",
+            "La taille ne compte pas pour la force intérieure"
+        ],
+        de: [
+            "Jeder bewunderte das riesige stolze Schiff",
+            "Es segelte über den tiefblauen Ozean",
+            "Ich war nur ein kleiner Bagger",
+            "Der Bagger blieb am sandigen Ufer",
+            "Ich war immer bereit anderen zu helfen",
+            "Das Schiff kam nah um Fracht zu laden",
+            "Plötzlich ging etwas schief nahe dem Ufer",
+            "Das Schiff blieb im schweren Schlamm stecken",
+            "Der dicke Schlamm hielt das Schiff fest",
+            "Das Schiff versuchte hart sich zu bewegen",
+            "Große Maschinen eilten um dem Schiff zu helfen",
+            "Keine von ihnen konnte es herausziehen",
+            "Alle fingen an die Hoffnung aufzugeben",
+            "Ich sagte dass ich ihnen helfen könnte",
+            "Die großen Maschinen lachten über mich",
+            "Ich fing an vorsichtig um das Schiff zu graben",
+            "Ich arbeitete hart um den Schlamm zu entfernen",
+            "Endlich war der Weg wieder frei",
+            "Das riesige Schiff schwamm endlich frei",
+            "Größe ist nicht wichtig für innere Stärke"
+        ]
+    };
     
     /* ═══════════════════════════════════════════════════════════════════════
        PART 3: GAME LOGIC
